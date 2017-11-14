@@ -34,41 +34,8 @@
 /*Will Adams and Nicholas Jackson
   CSCE 438 Section 500*/
 
-#include <ctime>
-
-#include <google/protobuf/timestamp.pb.h>
-#include <google/protobuf/duration.pb.h>
-
-#include <fstream>
-#include <iostream>
-#include <memory>
-#include <string>
-#include <stdlib.h>
-#include <unistd.h>
-#include <google/protobuf/util/time_util.h>
-#include <grpc++/grpc++.h>
-//#include "master.h"
-
-#include "fb.grpc.pb.h"
+#include "stdafx.h"
 #define DEBUG 1
-
-using google::protobuf::Timestamp;
-using google::protobuf::Duration;
-using grpc::Server;
-using grpc::ServerBuilder;
-using grpc::ServerContext;
-using grpc::ServerReader;
-using grpc::ServerReaderWriter;
-using grpc::ServerWriter;
-using grpc::Status;
-using hw2::Message;
-using hw2::ListReply;
-using hw2::Request;
-using hw2::Reply;
-using hw2::MessengerServer;
-using hw2::Master;
-
-using namespace std;
 
 //Client struct that holds a user's username, followers, and users they follow
 struct Client {
@@ -85,16 +52,27 @@ struct Client {
 
 //Vector that stores every client that has been created
 vector<Client> client_db;
-// round robin term
-int rr_term = 0;
-// node servers
-vector<string> servers;
+MasterMgmt* masterMgmt = nullptr;
+NodeMgmt* nodeMgmt = nullptr;
 
 class MasterServer final : public Master::Service {
   Status RequestServer(ServerContext* context, const Request* request, Reply* reply) {
-    string server = servers[rr_term];
+    // TODO rewrite the logic using object here
+    string server = masterMgmt->getRRTerm();
     reply->set_msg(server);
-    rr_term = (++rr_term) % servers.size();
+    return Status::OK;
+  }
+
+  Status RegisterSlave(ServerContext* context, const Request* request, Reply* reply) {
+    masterMgmt->registerMsgServer(request->arguments(0));
+    vector<string> serverList = masterMgmt->getServerList();
+    for (auto itr = serverList.begin(); itr != (serverList.end() - 1); itr++) {
+      reply->add_arguments(*itr);
+    }
+#ifdef DEBUG
+    cout << "In stub function RegisterSlave" << endl;
+#endif // DEBUG
+
     return Status::OK;
   }
 };
@@ -112,7 +90,43 @@ int find_user(std::string username){
 
 // Logic and data behind the server's behavior.
 class MessengerServiceImpl final : public MessengerServer::Service {
-  
+  // register another server
+  Status RegisterSlave(ServerContext* context, const Request* request, Reply* reply) override{
+    nodeMgmt->registerSlave(request->arguments(0));
+    // replies the machine's hostname
+    reply->set_msg(nodeMgmt->getHostName());
+    return Status::OK;
+  }
+
+  Status Sync(ServerContext* context, const SyncMsg* msg, Reply* reply) override {
+    string cmd = msg->cmd();
+    if(cmd.compare(CMD::CHAT) == 0)
+
+    else if(cmd.compare(CMD::JOIN) == 0)
+
+    else if(cmd.compare(CMD::LEAVE) == 0)
+
+    else if(cmd.compare(CMD::LOGIN) == 0)
+
+    else {
+#ifdef DEBUG
+      cout << "error in matching sync cmds" << endl;
+#endif // DEBUG
+      return Status::CANCELLED;
+    }
+  }
+
+  Status NotifyLogin(ServerContext* context, const NodeReq* request, Reply* reply) override{
+    Client c;
+    c.username = request->msg(0);
+    client_db.push_back(c);
+#ifdef DEBUG
+    cout << "notify login from " << request->src() << " succeeded." << endl;
+#endif // DEBUG
+
+    return Status::OK;
+  }
+
   //Sends the list of total rooms and joined rooms to the client
   Status List(ServerContext* context, const Request* request, ListReply* list_reply) override {
     Client user = client_db[find_user(request->username())];
@@ -184,6 +198,7 @@ class MessengerServiceImpl final : public MessengerServer::Service {
       c.username = username;
       client_db.push_back(c);
       reply->set_msg("Login Successful!");
+      nodeMgmt->broadcastLogin(username);
 #ifdef DEBUG
       cout << username << " Login Successful!" << endl;
 #endif
@@ -268,7 +283,9 @@ class MessengerServiceImpl final : public MessengerServer::Service {
 
 };
 
-void RunChatServer(std::string port_no) {
+void RunChatServer(string hostname, string port_no, string mServerInfo) {
+  nodeMgmt = new NodeMgmt((hostname + ":" + port_no), mServerInfo);
+
   std::string server_address = "0.0.0.0:"+port_no;
   MessengerServiceImpl service;
 
@@ -287,7 +304,9 @@ void RunChatServer(std::string port_no) {
   server->Wait();
 }
 
-void RunMasterServer(std::string m_port) {
+void RunMasterServer(string hostname, string m_port) {
+  masterMgmt = new MasterMgmt(hostname + ":" + m_port);
+
   string mserver_addr = "0.0.0.0:" + m_port;
   MasterServer m_service;
   ServerBuilder builder;
@@ -306,23 +325,44 @@ void RunMasterServer(std::string m_port) {
 }
 
 int main(int argc, char** argv) {
+  //ifstream serverFile("./servers.txt");
+  //string mServerInfo;
+
+  char hostname[128];
+  gethostname(hostname, sizeof (hostname));
+  strcat(hostname, ".cse.tamu.edu");
+
+  /*if (serverFile.is_open()) {
+    getline(serverFile, mServerInfo);
+    while (getline(serverFile, line)) {
+      if(!isSameHost(line, hostname))
+        servers.push_back(line);
+    }
+    serverFile.close();
+  }*/
   
-  std::string port = "3010", m_port = "3009";
+  std::string port = "3010", m_addr = "lenss-comp1.cse.tamu.edu:3009";
   int opt = 0;
-  bool isMaster = false;
+  bool isMaster = true;
   while ((opt = getopt(argc, argv, "p:m:")) != -1){
     switch(opt) {
       case 'p':
-          port = optarg;break;l
+          port = optarg;
+          break;
       case 'm':
-        isMaster = true;
-        m_port = optarg;
+        isMaster = false;
+        m_addr = optarg;
         break;
       default:
 	  std::cerr << "Invalid Command Line Argument\n";
     }
   }
-  RunChatServer(port);
+
+  if (isMaster) {
+    RunMasterServer(string(hostname), port);
+  }
+  else
+    RunChatServer(string(hostname), port, m_addr);
 
   return 0;
 }

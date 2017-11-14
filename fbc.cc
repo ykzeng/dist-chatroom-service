@@ -162,7 +162,7 @@ class MessengerClient {
     ClientContext context;
 
     Status status = stub_->Leave(&context, request, &reply);
-
+    
     if(status.ok()){
       std::cout << reply.msg() << std::endl;
     }
@@ -278,9 +278,9 @@ int main(int argc, char** argv) {
   // localhost at port 50051). We indicate that the channel isn't authenticated
   // (use of InsecureChannelCredentials()).
 
-  std::string hostname = "localhost";
+  std::string hostname = "lenss-comp1.cse.tamu.edu";
   std::string username = "default";
-  std::string port = "3010";
+  std::string port = "10009";
   int opt = 0;
   while ((opt = getopt(argc, argv, "h:u:p:")) != -1){
     switch(opt) {

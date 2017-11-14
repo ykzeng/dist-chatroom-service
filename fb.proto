@@ -42,11 +42,15 @@ service MessengerServer {
   rpc Leave (Request) returns (Reply) {}
   // Bidirectional streaming RPC
   rpc Chat (stream Message) returns (stream Message) {} 
+  rpc RegisterSlave(Request) returns (Reply) {}
+  rpc NotifyLogin(NodeReq) returns (Reply) {}
+  rpc Sync(SyncMsg) returns (Reply) {}
 }
 
 service Master{
   //rpc heartbeat(Request) return (Reply) {}
   rpc RequestServer(Request) returns (Reply) {}
+  rpc RegisterSlave(Request) returns (Reply) {}
 }
 
 message ListReply {
@@ -59,8 +63,20 @@ message Request {
   repeated string arguments = 2;
 }
 
+message SyncMsg{
+  string src = 1;
+  string cmd = 2;
+  repeated string args = 3;
+}
+
+message NodeReq{
+  string src = 1;
+  repeated string msg = 2;
+}
+
 message Reply {
   string msg = 1;
+  repeated string arguments = 2;
 }
 
 message Message {
