@@ -100,31 +100,35 @@ class MessengerServiceImpl final : public MessengerServer::Service {
 
   Status Sync(ServerContext* context, const SyncMsg* msg, Reply* reply) override {
     string cmd = msg->cmd();
-    if(cmd.compare(CMD::CHAT) == 0)
+    if (cmd.compare(CMD::CHAT) == 0) {
 
-    else if(cmd.compare(CMD::JOIN) == 0)
+    }
+    else if (cmd.compare(CMD::DISCONN) == 0) {
+      Client* c = &client_db[find_user(msg->args(0))];
+      c->connected = false;
+    }
+    else if (cmd.compare(CMD::JOIN) == 0) {
 
-    else if(cmd.compare(CMD::LEAVE) == 0)
+    }
+    else if (cmd.compare(CMD::LEAVE) == 0) {
 
-    else if(cmd.compare(CMD::LOGIN) == 0)
+    }
+    else if (cmd.compare(CMD::LOGIN) == 0) {
+      Client c;
+      c.username = msg->args(0);
+      client_db.push_back(c);
+#ifdef DEBUG
+      cout << "sync login from " << msg->src() << " succeeded" << endl;
+#endif // DEBUG
 
+      return Status::OK;
+    }
     else {
 #ifdef DEBUG
       cout << "error in matching sync cmds" << endl;
 #endif // DEBUG
       return Status::CANCELLED;
     }
-  }
-
-  Status NotifyLogin(ServerContext* context, const NodeReq* request, Reply* reply) override{
-    Client c;
-    c.username = request->msg(0);
-    client_db.push_back(c);
-#ifdef DEBUG
-    cout << "notify login from " << request->src() << " succeeded." << endl;
-#endif // DEBUG
-
-    return Status::OK;
   }
 
   //Sends the list of total rooms and joined rooms to the client
@@ -198,7 +202,12 @@ class MessengerServiceImpl final : public MessengerServer::Service {
       c.username = username;
       client_db.push_back(c);
       reply->set_msg("Login Successful!");
-      nodeMgmt->broadcastLogin(username);
+
+      SyncMsg msg;
+      msg.set_src(nodeMgmt->getHostName());
+      msg.set_cmd(CMD::LOGIN);
+      msg.add_args(username);
+      nodeMgmt->sync(msg);
 #ifdef DEBUG
       cout << username << " Login Successful!" << endl;
 #endif
@@ -277,6 +286,12 @@ class MessengerServiceImpl final : public MessengerServer::Service {
       }
     }
     //If the client disconnected from Chat Mode, set connected to false
+    SyncMsg msg;
+    msg.set_src(nodeMgmt->getHostName());
+    msg.set_cmd(CMD::DISCONN);
+    msg.add_args(c->username);
+    nodeMgmt->sync(msg);
+
     c->connected = false;
     return Status::OK;
   }

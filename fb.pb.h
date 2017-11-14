@@ -37,7 +37,7 @@ namespace protobuf_fb_2eproto {
 struct TableStruct {
   static const ::google::protobuf::internal::ParseTableField entries[];
   static const ::google::protobuf::internal::AuxillaryParseTableField aux[];
-  static const ::google::protobuf::internal::ParseTable schema[5];
+  static const ::google::protobuf::internal::ParseTable schema[6];
   static const ::google::protobuf::internal::FieldMetadata field_metadata[];
   static const ::google::protobuf::internal::SerializationTable serialization_table[];
   static const ::google::protobuf::uint32 offsets[];
@@ -47,6 +47,8 @@ void InitDefaultsListReplyImpl();
 void InitDefaultsListReply();
 void InitDefaultsRequestImpl();
 void InitDefaultsRequest();
+void InitDefaultsSyncMsgImpl();
+void InitDefaultsSyncMsg();
 void InitDefaultsNodeReqImpl();
 void InitDefaultsNodeReq();
 void InitDefaultsReplyImpl();
@@ -56,6 +58,7 @@ void InitDefaultsMessage();
 inline void InitDefaults() {
   InitDefaultsListReply();
   InitDefaultsRequest();
+  InitDefaultsSyncMsg();
   InitDefaultsNodeReq();
   InitDefaultsReply();
   InitDefaultsMessage();
@@ -77,6 +80,9 @@ extern ReplyDefaultTypeInternal _Reply_default_instance_;
 class Request;
 class RequestDefaultTypeInternal;
 extern RequestDefaultTypeInternal _Request_default_instance_;
+class SyncMsg;
+class SyncMsgDefaultTypeInternal;
+extern SyncMsgDefaultTypeInternal _SyncMsg_default_instance_;
 }  // namespace hw2
 namespace hw2 {
 
@@ -350,6 +356,151 @@ class Request : public ::google::protobuf::Message /* @@protoc_insertion_point(c
 };
 // -------------------------------------------------------------------
 
+class SyncMsg : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:hw2.SyncMsg) */ {
+ public:
+  SyncMsg();
+  virtual ~SyncMsg();
+
+  SyncMsg(const SyncMsg& from);
+
+  inline SyncMsg& operator=(const SyncMsg& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  #if LANG_CXX11
+  SyncMsg(SyncMsg&& from) noexcept
+    : SyncMsg() {
+    *this = ::std::move(from);
+  }
+
+  inline SyncMsg& operator=(SyncMsg&& from) noexcept {
+    if (GetArenaNoVirtual() == from.GetArenaNoVirtual()) {
+      if (this != &from) InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+  #endif
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const SyncMsg& default_instance();
+
+  static void InitAsDefaultInstance();  // FOR INTERNAL USE ONLY
+  static inline const SyncMsg* internal_default_instance() {
+    return reinterpret_cast<const SyncMsg*>(
+               &_SyncMsg_default_instance_);
+  }
+  static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
+    2;
+
+  void Swap(SyncMsg* other);
+  friend void swap(SyncMsg& a, SyncMsg& b) {
+    a.Swap(&b);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline SyncMsg* New() const PROTOBUF_FINAL { return New(NULL); }
+
+  SyncMsg* New(::google::protobuf::Arena* arena) const PROTOBUF_FINAL;
+  void CopyFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void MergeFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void CopyFrom(const SyncMsg& from);
+  void MergeFrom(const SyncMsg& from);
+  void Clear() PROTOBUF_FINAL;
+  bool IsInitialized() const PROTOBUF_FINAL;
+
+  size_t ByteSizeLong() const PROTOBUF_FINAL;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input) PROTOBUF_FINAL;
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const PROTOBUF_FINAL;
+  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
+      bool deterministic, ::google::protobuf::uint8* target) const PROTOBUF_FINAL;
+  int GetCachedSize() const PROTOBUF_FINAL { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const PROTOBUF_FINAL;
+  void InternalSwap(SyncMsg* other);
+  private:
+  inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
+    return NULL;
+  }
+  inline void* MaybeArenaPtr() const {
+    return NULL;
+  }
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const PROTOBUF_FINAL;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // repeated string args = 3;
+  int args_size() const;
+  void clear_args();
+  static const int kArgsFieldNumber = 3;
+  const ::std::string& args(int index) const;
+  ::std::string* mutable_args(int index);
+  void set_args(int index, const ::std::string& value);
+  #if LANG_CXX11
+  void set_args(int index, ::std::string&& value);
+  #endif
+  void set_args(int index, const char* value);
+  void set_args(int index, const char* value, size_t size);
+  ::std::string* add_args();
+  void add_args(const ::std::string& value);
+  #if LANG_CXX11
+  void add_args(::std::string&& value);
+  #endif
+  void add_args(const char* value);
+  void add_args(const char* value, size_t size);
+  const ::google::protobuf::RepeatedPtrField< ::std::string>& args() const;
+  ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_args();
+
+  // string src = 1;
+  void clear_src();
+  static const int kSrcFieldNumber = 1;
+  const ::std::string& src() const;
+  void set_src(const ::std::string& value);
+  #if LANG_CXX11
+  void set_src(::std::string&& value);
+  #endif
+  void set_src(const char* value);
+  void set_src(const char* value, size_t size);
+  ::std::string* mutable_src();
+  ::std::string* release_src();
+  void set_allocated_src(::std::string* src);
+
+  // string cmd = 2;
+  void clear_cmd();
+  static const int kCmdFieldNumber = 2;
+  const ::std::string& cmd() const;
+  void set_cmd(const ::std::string& value);
+  #if LANG_CXX11
+  void set_cmd(::std::string&& value);
+  #endif
+  void set_cmd(const char* value);
+  void set_cmd(const char* value, size_t size);
+  ::std::string* mutable_cmd();
+  ::std::string* release_cmd();
+  void set_allocated_cmd(::std::string* cmd);
+
+  // @@protoc_insertion_point(class_scope:hw2.SyncMsg)
+ private:
+
+  ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
+  ::google::protobuf::RepeatedPtrField< ::std::string> args_;
+  ::google::protobuf::internal::ArenaStringPtr src_;
+  ::google::protobuf::internal::ArenaStringPtr cmd_;
+  mutable int _cached_size_;
+  friend struct ::protobuf_fb_2eproto::TableStruct;
+  friend void ::protobuf_fb_2eproto::InitDefaultsSyncMsgImpl();
+};
+// -------------------------------------------------------------------
+
 class NodeReq : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:hw2.NodeReq) */ {
  public:
   NodeReq();
@@ -385,7 +536,7 @@ class NodeReq : public ::google::protobuf::Message /* @@protoc_insertion_point(c
                &_NodeReq_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    2;
+    3;
 
   void Swap(NodeReq* other);
   friend void swap(NodeReq& a, NodeReq& b) {
@@ -515,7 +666,7 @@ class Reply : public ::google::protobuf::Message /* @@protoc_insertion_point(cla
                &_Reply_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    3;
+    4;
 
   void Swap(Reply* other);
   friend void swap(Reply& a, Reply& b) {
@@ -645,7 +796,7 @@ class Message : public ::google::protobuf::Message /* @@protoc_insertion_point(c
                &_Message_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    4;
+    5;
 
   void Swap(Message* other);
   friend void swap(Message& a, Message& b) {
@@ -1013,6 +1164,185 @@ inline ::google::protobuf::RepeatedPtrField< ::std::string>*
 Request::mutable_arguments() {
   // @@protoc_insertion_point(field_mutable_list:hw2.Request.arguments)
   return &arguments_;
+}
+
+// -------------------------------------------------------------------
+
+// SyncMsg
+
+// string src = 1;
+inline void SyncMsg::clear_src() {
+  src_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline const ::std::string& SyncMsg::src() const {
+  // @@protoc_insertion_point(field_get:hw2.SyncMsg.src)
+  return src_.GetNoArena();
+}
+inline void SyncMsg::set_src(const ::std::string& value) {
+  
+  src_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:hw2.SyncMsg.src)
+}
+#if LANG_CXX11
+inline void SyncMsg::set_src(::std::string&& value) {
+  
+  src_.SetNoArena(
+    &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
+  // @@protoc_insertion_point(field_set_rvalue:hw2.SyncMsg.src)
+}
+#endif
+inline void SyncMsg::set_src(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  
+  src_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:hw2.SyncMsg.src)
+}
+inline void SyncMsg::set_src(const char* value, size_t size) {
+  
+  src_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:hw2.SyncMsg.src)
+}
+inline ::std::string* SyncMsg::mutable_src() {
+  
+  // @@protoc_insertion_point(field_mutable:hw2.SyncMsg.src)
+  return src_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline ::std::string* SyncMsg::release_src() {
+  // @@protoc_insertion_point(field_release:hw2.SyncMsg.src)
+  
+  return src_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline void SyncMsg::set_allocated_src(::std::string* src) {
+  if (src != NULL) {
+    
+  } else {
+    
+  }
+  src_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), src);
+  // @@protoc_insertion_point(field_set_allocated:hw2.SyncMsg.src)
+}
+
+// string cmd = 2;
+inline void SyncMsg::clear_cmd() {
+  cmd_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline const ::std::string& SyncMsg::cmd() const {
+  // @@protoc_insertion_point(field_get:hw2.SyncMsg.cmd)
+  return cmd_.GetNoArena();
+}
+inline void SyncMsg::set_cmd(const ::std::string& value) {
+  
+  cmd_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:hw2.SyncMsg.cmd)
+}
+#if LANG_CXX11
+inline void SyncMsg::set_cmd(::std::string&& value) {
+  
+  cmd_.SetNoArena(
+    &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
+  // @@protoc_insertion_point(field_set_rvalue:hw2.SyncMsg.cmd)
+}
+#endif
+inline void SyncMsg::set_cmd(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  
+  cmd_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:hw2.SyncMsg.cmd)
+}
+inline void SyncMsg::set_cmd(const char* value, size_t size) {
+  
+  cmd_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:hw2.SyncMsg.cmd)
+}
+inline ::std::string* SyncMsg::mutable_cmd() {
+  
+  // @@protoc_insertion_point(field_mutable:hw2.SyncMsg.cmd)
+  return cmd_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline ::std::string* SyncMsg::release_cmd() {
+  // @@protoc_insertion_point(field_release:hw2.SyncMsg.cmd)
+  
+  return cmd_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline void SyncMsg::set_allocated_cmd(::std::string* cmd) {
+  if (cmd != NULL) {
+    
+  } else {
+    
+  }
+  cmd_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), cmd);
+  // @@protoc_insertion_point(field_set_allocated:hw2.SyncMsg.cmd)
+}
+
+// repeated string args = 3;
+inline int SyncMsg::args_size() const {
+  return args_.size();
+}
+inline void SyncMsg::clear_args() {
+  args_.Clear();
+}
+inline const ::std::string& SyncMsg::args(int index) const {
+  // @@protoc_insertion_point(field_get:hw2.SyncMsg.args)
+  return args_.Get(index);
+}
+inline ::std::string* SyncMsg::mutable_args(int index) {
+  // @@protoc_insertion_point(field_mutable:hw2.SyncMsg.args)
+  return args_.Mutable(index);
+}
+inline void SyncMsg::set_args(int index, const ::std::string& value) {
+  // @@protoc_insertion_point(field_set:hw2.SyncMsg.args)
+  args_.Mutable(index)->assign(value);
+}
+#if LANG_CXX11
+inline void SyncMsg::set_args(int index, ::std::string&& value) {
+  // @@protoc_insertion_point(field_set:hw2.SyncMsg.args)
+  args_.Mutable(index)->assign(std::move(value));
+}
+#endif
+inline void SyncMsg::set_args(int index, const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  args_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:hw2.SyncMsg.args)
+}
+inline void SyncMsg::set_args(int index, const char* value, size_t size) {
+  args_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:hw2.SyncMsg.args)
+}
+inline ::std::string* SyncMsg::add_args() {
+  // @@protoc_insertion_point(field_add_mutable:hw2.SyncMsg.args)
+  return args_.Add();
+}
+inline void SyncMsg::add_args(const ::std::string& value) {
+  args_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:hw2.SyncMsg.args)
+}
+#if LANG_CXX11
+inline void SyncMsg::add_args(::std::string&& value) {
+  args_.Add(std::move(value));
+  // @@protoc_insertion_point(field_add:hw2.SyncMsg.args)
+}
+#endif
+inline void SyncMsg::add_args(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  args_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:hw2.SyncMsg.args)
+}
+inline void SyncMsg::add_args(const char* value, size_t size) {
+  args_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:hw2.SyncMsg.args)
+}
+inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
+SyncMsg::args() const {
+  // @@protoc_insertion_point(field_list:hw2.SyncMsg.args)
+  return args_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::std::string>*
+SyncMsg::mutable_args() {
+  // @@protoc_insertion_point(field_mutable_list:hw2.SyncMsg.args)
+  return &args_;
 }
 
 // -------------------------------------------------------------------
@@ -1425,6 +1755,8 @@ inline void Message::set_allocated_timestamp(::google::protobuf::Timestamp* time
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

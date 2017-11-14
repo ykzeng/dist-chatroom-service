@@ -43,7 +43,6 @@ service MessengerServer {
   // Bidirectional streaming RPC
   rpc Chat (stream Message) returns (stream Message) {} 
   rpc RegisterSlave(Request) returns (Reply) {}
-  rpc NotifyLogin(NodeReq) returns (Reply) {}
   rpc Sync(SyncMsg) returns (Reply) {}
 }
 

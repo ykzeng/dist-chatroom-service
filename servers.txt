@@ -1,0 +1,4 @@
+lenss-comp1.cse.tamu.edu:10009
+lenss-comp1.cse.tamu.edu:10010
+lenss-comp3.cse.tamu.edu:10010
+lenss-comp4.cse.tamu.edu:10010

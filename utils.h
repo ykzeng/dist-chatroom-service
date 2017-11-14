@@ -5,6 +5,21 @@
 
 using namespace std;
 
+class CMD {
+public:
+  static const string JOIN;
+  static const string LOGIN;
+  static const string LEAVE;
+  static const string CHAT;
+  static const string DISCONN;
+};
+
+const string CMD::JOIN = "JOIN";
+const string CMD::LOGIN = "LOGIN";
+const string CMD::LEAVE = "LEAVE";
+const string CMD::CHAT = "CHAT";
+const string CMD::DISCONN = "DISCONN";
+
 bool isSameHost(string hostname1, char* hostname2) {
   const char* core_name = hostname1.substr(0, hostname1.find(":")).c_str();
   if (strcmp(core_name, hostname2) == 0)
@@ -28,24 +43,6 @@ public:
 
   string getHostName() {
     return this->hostname;
-  }
-
-  void broadcastLogin(string uname) {
-    for (auto itr = msgServerStubs.begin(); itr != msgServerStubs.end(); itr++) {
-      unique_ptr<MessengerServer::Stub>& msgStub = *itr;
-      ClientContext context;
-      NodeReq nodeReq;
-      Reply reply;
-
-      nodeReq.add_msg(uname);
-      nodeReq.set_src(this->hostname);
-
-      Status status = msgStub->NotifyLogin(&context, nodeReq, &reply);
-      if (status.ok())
-        continue;
-      else
-        cout << "error in notifying login" << endl;
-    }
   }
 
   void sync(SyncMsg msg) {

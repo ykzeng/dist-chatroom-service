@@ -38,20 +38,8 @@ using hw2::Request;
 using hw2::Reply;
 using hw2::MessengerServer;
 using hw2::Master;
-using hw2::NodeReq;
+using hw2::SyncMsg;
 
 using namespace std;
 
-class CMD {
-public:
-  static const string JOIN;
-  static const string LOGIN;
-  static const string LEAVE;
-  static const string CHAT;
-};
-
-const string CMD::JOIN = "JOIN";
-const string CMD::LOGIN = "LOGIN";
-const string CMD::LEAVE = "LEAVE";
-const string CMD::CHAT = "CHAT";
 #pragma once

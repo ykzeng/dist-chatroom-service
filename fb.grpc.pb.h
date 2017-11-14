@@ -110,12 +110,12 @@ class MessengerServer final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Reply>> PrepareAsyncRegisterSlave(::grpc::ClientContext* context, const ::hw2::Request& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Reply>>(PrepareAsyncRegisterSlaveRaw(context, request, cq));
     }
-    virtual ::grpc::Status NotifyLogin(::grpc::ClientContext* context, const ::hw2::NodeReq& request, ::hw2::Reply* response) = 0;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Reply>> AsyncNotifyLogin(::grpc::ClientContext* context, const ::hw2::NodeReq& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Reply>>(AsyncNotifyLoginRaw(context, request, cq));
+    virtual ::grpc::Status Sync(::grpc::ClientContext* context, const ::hw2::SyncMsg& request, ::hw2::Reply* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Reply>> AsyncSync(::grpc::ClientContext* context, const ::hw2::SyncMsg& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Reply>>(AsyncSyncRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Reply>> PrepareAsyncNotifyLogin(::grpc::ClientContext* context, const ::hw2::NodeReq& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Reply>>(PrepareAsyncNotifyLoginRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Reply>> PrepareAsyncSync(::grpc::ClientContext* context, const ::hw2::SyncMsg& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Reply>>(PrepareAsyncSyncRaw(context, request, cq));
     }
   private:
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Reply>* AsyncLoginRaw(::grpc::ClientContext* context, const ::hw2::Request& request, ::grpc::CompletionQueue* cq) = 0;
@@ -131,8 +131,8 @@ class MessengerServer final {
     virtual ::grpc::ClientAsyncReaderWriterInterface< ::hw2::Message, ::hw2::Message>* PrepareAsyncChatRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Reply>* AsyncRegisterSlaveRaw(::grpc::ClientContext* context, const ::hw2::Request& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Reply>* PrepareAsyncRegisterSlaveRaw(::grpc::ClientContext* context, const ::hw2::Request& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Reply>* AsyncNotifyLoginRaw(::grpc::ClientContext* context, const ::hw2::NodeReq& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Reply>* PrepareAsyncNotifyLoginRaw(::grpc::ClientContext* context, const ::hw2::NodeReq& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Reply>* AsyncSyncRaw(::grpc::ClientContext* context, const ::hw2::SyncMsg& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Reply>* PrepareAsyncSyncRaw(::grpc::ClientContext* context, const ::hw2::SyncMsg& request, ::grpc::CompletionQueue* cq) = 0;
   };
   class Stub final : public StubInterface {
    public:
@@ -181,12 +181,12 @@ class MessengerServer final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::hw2::Reply>> PrepareAsyncRegisterSlave(::grpc::ClientContext* context, const ::hw2::Request& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::hw2::Reply>>(PrepareAsyncRegisterSlaveRaw(context, request, cq));
     }
-    ::grpc::Status NotifyLogin(::grpc::ClientContext* context, const ::hw2::NodeReq& request, ::hw2::Reply* response) override;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::hw2::Reply>> AsyncNotifyLogin(::grpc::ClientContext* context, const ::hw2::NodeReq& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::hw2::Reply>>(AsyncNotifyLoginRaw(context, request, cq));
+    ::grpc::Status Sync(::grpc::ClientContext* context, const ::hw2::SyncMsg& request, ::hw2::Reply* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::hw2::Reply>> AsyncSync(::grpc::ClientContext* context, const ::hw2::SyncMsg& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::hw2::Reply>>(AsyncSyncRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::hw2::Reply>> PrepareAsyncNotifyLogin(::grpc::ClientContext* context, const ::hw2::NodeReq& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::hw2::Reply>>(PrepareAsyncNotifyLoginRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::hw2::Reply>> PrepareAsyncSync(::grpc::ClientContext* context, const ::hw2::SyncMsg& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::hw2::Reply>>(PrepareAsyncSyncRaw(context, request, cq));
     }
 
    private:
@@ -204,15 +204,15 @@ class MessengerServer final {
     ::grpc::ClientAsyncReaderWriter< ::hw2::Message, ::hw2::Message>* PrepareAsyncChatRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::hw2::Reply>* AsyncRegisterSlaveRaw(::grpc::ClientContext* context, const ::hw2::Request& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::hw2::Reply>* PrepareAsyncRegisterSlaveRaw(::grpc::ClientContext* context, const ::hw2::Request& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::hw2::Reply>* AsyncNotifyLoginRaw(::grpc::ClientContext* context, const ::hw2::NodeReq& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::hw2::Reply>* PrepareAsyncNotifyLoginRaw(::grpc::ClientContext* context, const ::hw2::NodeReq& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::hw2::Reply>* AsyncSyncRaw(::grpc::ClientContext* context, const ::hw2::SyncMsg& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::hw2::Reply>* PrepareAsyncSyncRaw(::grpc::ClientContext* context, const ::hw2::SyncMsg& request, ::grpc::CompletionQueue* cq) override;
     const ::grpc::RpcMethod rpcmethod_Login_;
     const ::grpc::RpcMethod rpcmethod_List_;
     const ::grpc::RpcMethod rpcmethod_Join_;
     const ::grpc::RpcMethod rpcmethod_Leave_;
     const ::grpc::RpcMethod rpcmethod_Chat_;
     const ::grpc::RpcMethod rpcmethod_RegisterSlave_;
-    const ::grpc::RpcMethod rpcmethod_NotifyLogin_;
+    const ::grpc::RpcMethod rpcmethod_Sync_;
   };
   static std::unique_ptr<Stub> NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
 
@@ -227,7 +227,7 @@ class MessengerServer final {
     // Bidirectional streaming RPC
     virtual ::grpc::Status Chat(::grpc::ServerContext* context, ::grpc::ServerReaderWriter< ::hw2::Message, ::hw2::Message>* stream);
     virtual ::grpc::Status RegisterSlave(::grpc::ServerContext* context, const ::hw2::Request* request, ::hw2::Reply* response);
-    virtual ::grpc::Status NotifyLogin(::grpc::ServerContext* context, const ::hw2::NodeReq* request, ::hw2::Reply* response);
+    virtual ::grpc::Status Sync(::grpc::ServerContext* context, const ::hw2::SyncMsg* request, ::hw2::Reply* response);
   };
   template <class BaseClass>
   class WithAsyncMethod_Login : public BaseClass {
@@ -350,26 +350,26 @@ class MessengerServer final {
     }
   };
   template <class BaseClass>
-  class WithAsyncMethod_NotifyLogin : public BaseClass {
+  class WithAsyncMethod_Sync : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service *service) {}
    public:
-    WithAsyncMethod_NotifyLogin() {
+    WithAsyncMethod_Sync() {
       ::grpc::Service::MarkMethodAsync(6);
     }
-    ~WithAsyncMethod_NotifyLogin() override {
+    ~WithAsyncMethod_Sync() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status NotifyLogin(::grpc::ServerContext* context, const ::hw2::NodeReq* request, ::hw2::Reply* response) final override {
+    ::grpc::Status Sync(::grpc::ServerContext* context, const ::hw2::SyncMsg* request, ::hw2::Reply* response) final override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestNotifyLogin(::grpc::ServerContext* context, ::hw2::NodeReq* request, ::grpc::ServerAsyncResponseWriter< ::hw2::Reply>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void RequestSync(::grpc::ServerContext* context, ::hw2::SyncMsg* request, ::grpc::ServerAsyncResponseWriter< ::hw2::Reply>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(6, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
-  typedef WithAsyncMethod_Login<WithAsyncMethod_List<WithAsyncMethod_Join<WithAsyncMethod_Leave<WithAsyncMethod_Chat<WithAsyncMethod_RegisterSlave<WithAsyncMethod_NotifyLogin<Service > > > > > > > AsyncService;
+  typedef WithAsyncMethod_Login<WithAsyncMethod_List<WithAsyncMethod_Join<WithAsyncMethod_Leave<WithAsyncMethod_Chat<WithAsyncMethod_RegisterSlave<WithAsyncMethod_Sync<Service > > > > > > > AsyncService;
   template <class BaseClass>
   class WithGenericMethod_Login : public BaseClass {
    private:
@@ -473,18 +473,18 @@ class MessengerServer final {
     }
   };
   template <class BaseClass>
-  class WithGenericMethod_NotifyLogin : public BaseClass {
+  class WithGenericMethod_Sync : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service *service) {}
    public:
-    WithGenericMethod_NotifyLogin() {
+    WithGenericMethod_Sync() {
       ::grpc::Service::MarkMethodGeneric(6);
     }
-    ~WithGenericMethod_NotifyLogin() override {
+    ~WithGenericMethod_Sync() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status NotifyLogin(::grpc::ServerContext* context, const ::hw2::NodeReq* request, ::hw2::Reply* response) final override {
+    ::grpc::Status Sync(::grpc::ServerContext* context, const ::hw2::SyncMsg* request, ::hw2::Reply* response) final override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
@@ -590,28 +590,28 @@ class MessengerServer final {
     virtual ::grpc::Status StreamedRegisterSlave(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::hw2::Request,::hw2::Reply>* server_unary_streamer) = 0;
   };
   template <class BaseClass>
-  class WithStreamedUnaryMethod_NotifyLogin : public BaseClass {
+  class WithStreamedUnaryMethod_Sync : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service *service) {}
    public:
-    WithStreamedUnaryMethod_NotifyLogin() {
+    WithStreamedUnaryMethod_Sync() {
       ::grpc::Service::MarkMethodStreamed(6,
-        new ::grpc::StreamedUnaryHandler< ::hw2::NodeReq, ::hw2::Reply>(std::bind(&WithStreamedUnaryMethod_NotifyLogin<BaseClass>::StreamedNotifyLogin, this, std::placeholders::_1, std::placeholders::_2)));
+        new ::grpc::StreamedUnaryHandler< ::hw2::SyncMsg, ::hw2::Reply>(std::bind(&WithStreamedUnaryMethod_Sync<BaseClass>::StreamedSync, this, std::placeholders::_1, std::placeholders::_2)));
     }
-    ~WithStreamedUnaryMethod_NotifyLogin() override {
+    ~WithStreamedUnaryMethod_Sync() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable regular version of this method
-    ::grpc::Status NotifyLogin(::grpc::ServerContext* context, const ::hw2::NodeReq* request, ::hw2::Reply* response) final override {
+    ::grpc::Status Sync(::grpc::ServerContext* context, const ::hw2::SyncMsg* request, ::hw2::Reply* response) final override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     // replace default version of method with streamed unary
-    virtual ::grpc::Status StreamedNotifyLogin(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::hw2::NodeReq,::hw2::Reply>* server_unary_streamer) = 0;
+    virtual ::grpc::Status StreamedSync(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::hw2::SyncMsg,::hw2::Reply>* server_unary_streamer) = 0;
   };
-  typedef WithStreamedUnaryMethod_Login<WithStreamedUnaryMethod_List<WithStreamedUnaryMethod_Join<WithStreamedUnaryMethod_Leave<WithStreamedUnaryMethod_RegisterSlave<WithStreamedUnaryMethod_NotifyLogin<Service > > > > > > StreamedUnaryService;
+  typedef WithStreamedUnaryMethod_Login<WithStreamedUnaryMethod_List<WithStreamedUnaryMethod_Join<WithStreamedUnaryMethod_Leave<WithStreamedUnaryMethod_RegisterSlave<WithStreamedUnaryMethod_Sync<Service > > > > > > StreamedUnaryService;
   typedef Service SplitStreamedService;
-  typedef WithStreamedUnaryMethod_Login<WithStreamedUnaryMethod_List<WithStreamedUnaryMethod_Join<WithStreamedUnaryMethod_Leave<WithStreamedUnaryMethod_RegisterSlave<WithStreamedUnaryMethod_NotifyLogin<Service > > > > > > StreamedService;
+  typedef WithStreamedUnaryMethod_Login<WithStreamedUnaryMethod_List<WithStreamedUnaryMethod_Join<WithStreamedUnaryMethod_Leave<WithStreamedUnaryMethod_RegisterSlave<WithStreamedUnaryMethod_Sync<Service > > > > > > StreamedService;
 };
 
 class Master final {

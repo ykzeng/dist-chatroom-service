@@ -22,7 +22,7 @@ static const char* MessengerServer_method_names[] = {
   "/hw2.MessengerServer/Leave",
   "/hw2.MessengerServer/Chat",
   "/hw2.MessengerServer/RegisterSlave",
-  "/hw2.MessengerServer/NotifyLogin",
+  "/hw2.MessengerServer/Sync",
 };
 
 std::unique_ptr< MessengerServer::Stub> MessengerServer::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
@@ -37,7 +37,7 @@ MessengerServer::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& ch
   , rpcmethod_Leave_(MessengerServer_method_names[3], ::grpc::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_Chat_(MessengerServer_method_names[4], ::grpc::RpcMethod::BIDI_STREAMING, channel)
   , rpcmethod_RegisterSlave_(MessengerServer_method_names[5], ::grpc::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_NotifyLogin_(MessengerServer_method_names[6], ::grpc::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_Sync_(MessengerServer_method_names[6], ::grpc::RpcMethod::NORMAL_RPC, channel)
   {}
 
 ::grpc::Status MessengerServer::Stub::Login(::grpc::ClientContext* context, const ::hw2::Request& request, ::hw2::Reply* response) {
@@ -112,16 +112,16 @@ MessengerServer::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& ch
   return ::grpc::ClientAsyncResponseReader< ::hw2::Reply>::Create(channel_.get(), cq, rpcmethod_RegisterSlave_, context, request, false);
 }
 
-::grpc::Status MessengerServer::Stub::NotifyLogin(::grpc::ClientContext* context, const ::hw2::NodeReq& request, ::hw2::Reply* response) {
-  return ::grpc::BlockingUnaryCall(channel_.get(), rpcmethod_NotifyLogin_, context, request, response);
+::grpc::Status MessengerServer::Stub::Sync(::grpc::ClientContext* context, const ::hw2::SyncMsg& request, ::hw2::Reply* response) {
+  return ::grpc::BlockingUnaryCall(channel_.get(), rpcmethod_Sync_, context, request, response);
 }
 
-::grpc::ClientAsyncResponseReader< ::hw2::Reply>* MessengerServer::Stub::AsyncNotifyLoginRaw(::grpc::ClientContext* context, const ::hw2::NodeReq& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::ClientAsyncResponseReader< ::hw2::Reply>::Create(channel_.get(), cq, rpcmethod_NotifyLogin_, context, request, true);
+::grpc::ClientAsyncResponseReader< ::hw2::Reply>* MessengerServer::Stub::AsyncSyncRaw(::grpc::ClientContext* context, const ::hw2::SyncMsg& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::ClientAsyncResponseReader< ::hw2::Reply>::Create(channel_.get(), cq, rpcmethod_Sync_, context, request, true);
 }
 
-::grpc::ClientAsyncResponseReader< ::hw2::Reply>* MessengerServer::Stub::PrepareAsyncNotifyLoginRaw(::grpc::ClientContext* context, const ::hw2::NodeReq& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::ClientAsyncResponseReader< ::hw2::Reply>::Create(channel_.get(), cq, rpcmethod_NotifyLogin_, context, request, false);
+::grpc::ClientAsyncResponseReader< ::hw2::Reply>* MessengerServer::Stub::PrepareAsyncSyncRaw(::grpc::ClientContext* context, const ::hw2::SyncMsg& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::ClientAsyncResponseReader< ::hw2::Reply>::Create(channel_.get(), cq, rpcmethod_Sync_, context, request, false);
 }
 
 MessengerServer::Service::Service() {
@@ -158,8 +158,8 @@ MessengerServer::Service::Service() {
   AddMethod(new ::grpc::RpcServiceMethod(
       MessengerServer_method_names[6],
       ::grpc::RpcMethod::NORMAL_RPC,
-      new ::grpc::RpcMethodHandler< MessengerServer::Service, ::hw2::NodeReq, ::hw2::Reply>(
-          std::mem_fn(&MessengerServer::Service::NotifyLogin), this)));
+      new ::grpc::RpcMethodHandler< MessengerServer::Service, ::hw2::SyncMsg, ::hw2::Reply>(
+          std::mem_fn(&MessengerServer::Service::Sync), this)));
 }
 
 MessengerServer::Service::~Service() {
@@ -206,7 +206,7 @@ MessengerServer::Service::~Service() {
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }
 
-::grpc::Status MessengerServer::Service::NotifyLogin(::grpc::ServerContext* context, const ::hw2::NodeReq* request, ::hw2::Reply* response) {
+::grpc::Status MessengerServer::Service::Sync(::grpc::ServerContext* context, const ::hw2::SyncMsg* request, ::hw2::Reply* response) {
   (void) context;
   (void) request;
   (void) response;
