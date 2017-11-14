@@ -69,9 +69,6 @@ class MasterServer final : public Master::Service {
     for (auto itr = serverList.begin(); itr != (serverList.end() - 1); itr++) {
       reply->add_arguments(*itr);
     }
-#ifdef DEBUG
-    cout << "In stub function RegisterSlave" << endl;
-#endif // DEBUG
 
     return Status::OK;
   }
@@ -88,6 +85,23 @@ int find_user(std::string username){
   return -1;
 }
 
+string print_relations() {
+  string relationList = "";
+  for (Client c : client_db) {
+    relationList += c.username + "\n"
+      + "Following: ";
+    for (auto it = c.client_following.begin(); it != c.client_following.end(); it++) {
+      relationList += (*it)->username + " ";
+    }
+    relationList += "\nFollowers: ";
+    for (auto it = c.client_followers.begin(); it != c.client_followers.end(); it++) {
+      relationList += (*it)->username + " ";
+    }
+    relationList += "\n";
+  }
+  return relationList;
+}
+
 // Logic and data behind the server's behavior.
 class MessengerServiceImpl final : public MessengerServer::Service {
   // register another server
@@ -100,15 +114,26 @@ class MessengerServiceImpl final : public MessengerServer::Service {
 
   Status Sync(ServerContext* context, const SyncMsg* msg, Reply* reply) override {
     string cmd = msg->cmd();
+    reply->set_msg(nodeMgmt->getHostName());
     if (cmd.compare(CMD::CHAT) == 0) {
 
     }
     else if (cmd.compare(CMD::DISCONN) == 0) {
       Client* c = &client_db[find_user(msg->args(0))];
       c->connected = false;
+      return Status::OK;
     }
     else if (cmd.compare(CMD::JOIN) == 0) {
+      Client *user1 = &client_db[find_user(msg->args(0))];
+      Client *user2 = &client_db[find_user(msg->args(1))];
+      user1->client_following.push_back(user2);
+      user2->client_followers.push_back(user1);
+#ifdef DEBUG
+      cout << "After syncing join request: " << endl
+        << print_relations();
+#endif // DEBUG
 
+      return Status::OK;
     }
     else if (cmd.compare(CMD::LEAVE) == 0) {
 
@@ -161,8 +186,22 @@ class MessengerServiceImpl final : public MessengerServer::Service {
 	reply->set_msg("Join Failed -- Already Following User");
         return Status::OK;
       }
+
+      SyncMsg joinSyncMsg;
+      joinSyncMsg.set_src(nodeMgmt->getHostName());
+      joinSyncMsg.set_cmd(CMD::JOIN);
+      joinSyncMsg.add_args(username1);
+      joinSyncMsg.add_args(username2);
+
+      nodeMgmt->sync(joinSyncMsg);
+
       user1->client_following.push_back(user2);
       user2->client_followers.push_back(user1);
+#ifdef DEBUG
+      cout << print_relations();
+      // lalala
+#endif // DEBUG
+
       reply->set_msg("Join Successful");
     }
     return Status::OK; 
@@ -356,7 +395,7 @@ int main(int argc, char** argv) {
     serverFile.close();
   }*/
   
-  std::string port = "3010", m_addr = "lenss-comp1.cse.tamu.edu:3009";
+  std::string port = "10010", m_port = "10009", m_addr = "lenss-comp1.cse.tamu.edu:10009";
   int opt = 0;
   bool isMaster = true;
   while ((opt = getopt(argc, argv, "p:m:")) != -1){
@@ -374,7 +413,7 @@ int main(int argc, char** argv) {
   }
 
   if (isMaster) {
-    RunMasterServer(string(hostname), port);
+    RunMasterServer(string(hostname), m_port);
   }
   else
     RunChatServer(string(hostname), port, m_addr);

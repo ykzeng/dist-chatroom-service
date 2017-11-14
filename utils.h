@@ -53,9 +53,9 @@ public:
 
       Status status = msgStub->Sync(&context, msg, &reply);
       if (status.ok())
-        continue;
+        cout << "success in syn " << msg.cmd() << " on " << reply.msg() << endl;
       else
-        cout << "error in sync " << msg.cmd() << endl;
+        cout << "error in sync " << msg.cmd() << " on " << reply.msg() << endl;
     }
   }
 
