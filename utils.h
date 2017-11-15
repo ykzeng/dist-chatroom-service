@@ -1,9 +1,25 @@
 #pragma once
+#ifndef UTILS_H
+#define UTILS_H
 
 #include "stdafx.h"
 #define DEBUG 1
 
 using namespace std;
+
+// abstract definition
+class MessengerServiceImpl final : public MessengerServer::Service {
+  Status RegisterSlave(ServerContext* context, const JoinRequest* request, Reply* reply) override;
+  Status Heartbeat(ServerContext* context, const Foo* request, Foo* reply) override;
+  Status Sync(ServerContext* context, const SyncMsg* msg, Reply* reply) override;
+  Status List(ServerContext* context, const Request* request, ListReply* list_reply) override;
+  Status Join(ServerContext* context, const Request* request, Reply* reply) override;
+  Status Leave(ServerContext* context, const Request* request, Reply* reply) override;
+  Status Login(ServerContext* context, const Request* request, Reply* reply) override;
+  Status Chat(ServerContext* context,
+    ServerReaderWriter<Message, Message>* stream) override;
+
+};
 
 void print_strvec(vector<string> toprint) {
   for (size_t i = 0; i < toprint.size(); i++)
@@ -59,18 +75,22 @@ string genRecord(Message message) {
   return fileinput;
 }
 
-void distributeChats(Client* c, Message message) {
+void distributeChats(Client* c, Message message, bool isReplica) {
   string username = c->username;
   // get the info for writing to file
   string fileinput = genRecord(message);
 
-  //Write the current message to "username.txt"
-  std::string filename = username + ".txt";
-  std::ofstream user_file(filename, std::ios::app | std::ios::out | std::ios::in);
-  user_file << fileinput;
+  if (!isReplica)
+  {
+    //Write the current message to "username.txt"
+    std::string filename = username + ".txt";
+    std::ofstream user_file(filename, std::ios::app | std::ios::out | std::ios::in);
+    user_file << fileinput;
+
 #ifdef DEBUG
-  cout << username + ".txt is now written" << endl;
+    cout << username + ".txt is now written" << endl;
 #endif // DEBUG
+  }
 
   //persist the message to each follower's file
   //send msg to each local follower's stream
@@ -86,33 +106,35 @@ void distributeChats(Client* c, Message message) {
       assert(temp_client->stream != 0 && temp_client->connected);
       temp_client->stream->Write(message);
     }
-    //For each of the current user's followers, put the message in their following.txt file
-    std::string temp_username = temp_client->username;
-    std::string temp_file = temp_username + "following.txt";
 
-    std::ofstream following_file(temp_file, std::ios::app | std::ios::out | std::ios::in);
-    following_file << fileinput;
+    if (!isReplica) {
+      //For each of the current user's followers, put the message in their following.txt file
+      std::string temp_file = temp_client->username + "following.txt";
+      std::ofstream following_file(temp_file, std::ios::app | std::ios::out | std::ios::in);
+      following_file << fileinput;
 #ifdef DEBUG
-    cout << "=======wrote to " << temp_file << endl;
+      cout << "=======wrote to " << temp_file << endl;
 #endif // DEBUG
+      // following file record count ++
+      temp_client->following_file_size++;
 
-    temp_client->following_file_size++;
-
-    std::ofstream user_file(temp_username + ".txt", std::ios::app | std::ios::out | std::ios::in);
-    user_file << fileinput;
+      std::ofstream user_file(temp_username + ".txt", std::ios::app | std::ios::out | std::ios::in);
+      user_file << fileinput;
 #ifdef DEBUG
-    cout << "=======wrote to " << temp_username << endl;
+      cout << "=======wrote to " << temp_username << endl;
 #endif // DEBUG
+    }
   }
 }
 
 class NodeMgmt {
 public: 
-  NodeMgmt(string _hostname, string mServerInfo, bool isReplica) {
+  NodeMgmt(string _hostname, string mServerInfo, bool _isReplica) {
     this->hostname = _hostname;
     this->masterStub = Master::NewStub(grpc::CreateChannel(
       mServerInfo, grpc::InsecureChannelCredentials()));
-    this->joinMaster(isReplica);
+    this->replica = _isReplica;
+    this->joinMaster();
   }
 
   NodeMgmt(string _hostname) {
@@ -128,10 +150,13 @@ public:
       unique_ptr<MessengerServer::Stub>& msgStub = *itr;
       ClientContext context;
       Reply reply;
+#ifdef DEBUG
+      cout << "in function nodemgmt->sync" << endl;
+#endif // DEBUG
 
       Status status = msgStub->Sync(&context, msg, &reply);
       if (status.ok())
-        cout << "success in syn " << msg.cmd() << " on " << reply.msg() << endl;
+        cout << "success in sync " << msg.cmd() << " on " << reply.msg() << endl;
       else
         cout << "error in sync " << msg.cmd() << " on " << reply.msg() << endl;
     }
@@ -170,26 +195,32 @@ public:
   //  }
   //}
 
-  void joinMaster(bool isReplica) {
+  void joinMaster() {
     ClientContext context;
     JoinRequest request;
-    Reply reply;
+    JoinReply reply;
     request.set_hostname(this->getHostName());
-    request.set_replica(isReplica);
+    request.set_replica(this->isReplica);
 
     Status status = this->masterStub->RegisterSlave(&context, request, &reply);
     if (status.ok()) {
+//#ifdef DEBUG
+//      cout << this->hostname << " joinMaster succeeded as a "
+//        << (isReplica ? "replica server":"server") << endl;
+//#endif // DEBUG
+      for (int i = 0; i < reply.slaves_size(); i++) {
 #ifdef DEBUG
-      cout << this->hostname << " joinMaster succeeded as a "
-        << (isReplica ? "replica server":"server") << endl;
+        cout << "Newly Joined Server Connecting to " << reply.slaves(i) << endl;
 #endif // DEBUG
-      for (int i = 0; i < reply.arguments_size(); i++) {
-#ifdef DEBUG
-        cout << "Connecting to " << reply.arguments(i) << endl;
-#endif // DEBUG
+        string tmpSlave = reply.slaves(i);
         this->msgServerStubs.push_back(MessengerServer::NewStub(grpc::CreateChannel(
-          reply.arguments(i), grpc::InsecureChannelCredentials())));
+          tmpSlave, grpc::InsecureChannelCredentials())));
+        this->allSlaves.push_back(tmpSlave);
       }
+      /*for (int i = 0; i < reply.workers_size(); i++) {
+        string tmpWorker = reply.workers(i);
+        this->workers.push_back(tmpWorker);
+      }*/
       return;
     }
     else {
@@ -200,21 +231,45 @@ public:
     }
   }
 
-  void registerSlave(string msgServerInfo) {
-    this->workers.push_back(msgServerInfo);
-    this->msgServerStubs.push_back(MessengerServer::NewStub(grpc::CreateChannel(
-      msgServerInfo, grpc::InsecureChannelCredentials())));
+  void runChatServer() {
+#ifdef DEBUG
+    cout << "run chat server on " << this->hostname << endl;
+#endif // DEBUG
+
+    std::string server_address = this->hostname;
+    MessengerServiceImpl service;
+
+    ServerBuilder builder;
+    // Listen on the given address without any authentication mechanism.
+    builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
+    // Register "service" as the instance through which we'll communicate with
+    // clients. In this case it corresponds to an *synchronous* service.
+    builder.RegisterService(&service);
+    // Finally assemble the server.
+    this->server = builder.BuildAndStart();
+    std::cout << "Chat Server listening on " << server_address << std::endl;
+    // Wait for the server to shutdown. Note that some other thread must be
+    // responsible for shutting down the server for this call to ever return.
+    server->Wait();
   }
 
-  vector<string> getWorkerList() {
-    return this->workers;
+  void registerSlave(string msgServerInfo) {
+    this->msgServerStubs.push_back(MessengerServer::NewStub(grpc::CreateChannel(
+      msgServerInfo, grpc::InsecureChannelCredentials())));
+    allSlaves.push_back(msgServerInfo);
   }
 
   vector<string> getAllSlaves() {
     return this->allSlaves;
   }
 
+  bool isReplica() {
+    return this->replica;
+  }
+
   void heartbeat() {
+    // Sequential identification
+    // TODO very bad in large concurrent system
     int pos = find(allSlaves.begin(), allSlaves.end(), this->hostname) - allSlaves.begin();
 #ifdef DEBUG
     cout << "the chat master position in stub vector: " << pos << endl;
@@ -234,6 +289,7 @@ public:
         // 2. modify isReplica
         // 3. get registered client list, set their onserver property to be true
         // 4. modify the port
+        
       }
 #ifdef DEBUG
       else {
@@ -245,13 +301,13 @@ public:
   }
 
 protected:
-  vector<string> workers;
   vector<string> allSlaves;
   vector<unique_ptr<MessengerServer::Stub>> msgServerStubs;
   unique_ptr<Master::Stub> masterStub;
   unique_ptr<Server> server;
   // this contains "hostname:port"
   string hostname;
+  bool replica;
 };
 
 class MasterMgmt : public NodeMgmt{
@@ -263,6 +319,10 @@ public:
     this->rr_term = (++this->rr_term) % workers.size();
     return server;
   }*/
+
+  vector<string> getWorkerList() {
+    return this->workers;
+  }
 
   string rrServerAssign(string uname) {
     // TODO how to ensure that the server assignment is success?
@@ -284,9 +344,9 @@ public:
 #ifdef DEBUG
     cout << "In function mastermgmt->registerMsgServer before broadcasting!" << endl;
 #endif // DEBUG
-    Request request;
-    request.add_arguments(msgServerInfo);
-    Status status;
+    JoinRequest request;
+    request.set_hostname(msgServerInfo);
+    request.set_replica(isReplica);
 
     for (auto itr = msgServerStubs.begin();
       itr != msgServerStubs.end(); itr++) {
@@ -296,23 +356,21 @@ public:
       Reply br_reply;
 
       unique_ptr<MessengerServer::Stub>& stub = *itr;
-      status = stub->RegisterSlave(&context, request, &br_reply);
+
+      Status status = stub->RegisterSlave(&context, request, &br_reply);
       if (status.ok())
       {
         cout << "register server " << msgServerInfo
           << " on " << br_reply.msg() << " succeeded!" << endl;
       }
     }
-#ifdef DEBUG
-    cout << "Pushing stub to " << msgServerInfo << " into list!" << endl;
-#endif // DEBUG
 
     msgServerStubs.push_back(MessengerServer::NewStub(grpc::CreateChannel(
       msgServerInfo, grpc::InsecureChannelCredentials())));
 #ifdef DEBUG
     cout << "Pushed stub to " << msgServerInfo << " into list!" << endl;
 #endif // DEBUG
-
+    // push worker/replica addr to vector
     if (!isReplica) {
 #ifdef DEBUG
       cout << msgServerInfo << " is not a replica" << endl;
@@ -344,8 +402,12 @@ public:
   //  }
   //}
 
-private: 
+private:
+  vector<string> workers;
   int rr_term = 0;
   // client to server stub index map
   map<string, int> csMap;
 };
+
+
+#endif // !1

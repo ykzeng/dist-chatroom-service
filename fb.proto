@@ -42,7 +42,7 @@ service MessengerServer {
   rpc Leave (Request) returns (Reply) {}
   // Bidirectional streaming RPC
   rpc Chat (stream Message) returns (stream Message) {} 
-  rpc RegisterSlave(Request) returns (Reply) {}
+  rpc RegisterSlave(JoinRequest) returns (Reply) {}
   rpc Sync(SyncMsg) returns (Reply) {}
   rpc Heartbeat(Foo) returns (Foo) {}
 }
@@ -54,7 +54,7 @@ message Foo{
 service Master{
   //rpc heartbeat(Request) return (Reply) {}
   rpc RequestServer(Request) returns (Reply) {}
-  rpc RegisterSlave(JoinRequest) returns (Reply) {}
+  rpc RegisterSlave(JoinRequest) returns (JoinReply) {}
 }
 
 message ListReply {
@@ -67,9 +67,14 @@ message Request {
   repeated string arguments = 2;
 }
 
+// NOTICED that those two are for joining cluster purpose
 message JoinRequest{
   string hostname = 1;
   bool replica = 2;
+}
+message JoinReply{
+  repeated string slaves = 1;
+  repeated string workers = 2;
 }
 
 message Message {
@@ -97,3 +102,4 @@ message Reply {
   string msg = 1;
   repeated string arguments = 2;
 }
+

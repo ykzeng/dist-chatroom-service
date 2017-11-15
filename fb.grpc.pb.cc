@@ -102,15 +102,15 @@ MessengerServer::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& ch
   return ::grpc::ClientAsyncReaderWriter< ::hw2::Message, ::hw2::Message>::Create(channel_.get(), cq, rpcmethod_Chat_, context, false, nullptr);
 }
 
-::grpc::Status MessengerServer::Stub::RegisterSlave(::grpc::ClientContext* context, const ::hw2::Request& request, ::hw2::Reply* response) {
+::grpc::Status MessengerServer::Stub::RegisterSlave(::grpc::ClientContext* context, const ::hw2::JoinRequest& request, ::hw2::Reply* response) {
   return ::grpc::BlockingUnaryCall(channel_.get(), rpcmethod_RegisterSlave_, context, request, response);
 }
 
-::grpc::ClientAsyncResponseReader< ::hw2::Reply>* MessengerServer::Stub::AsyncRegisterSlaveRaw(::grpc::ClientContext* context, const ::hw2::Request& request, ::grpc::CompletionQueue* cq) {
+::grpc::ClientAsyncResponseReader< ::hw2::Reply>* MessengerServer::Stub::AsyncRegisterSlaveRaw(::grpc::ClientContext* context, const ::hw2::JoinRequest& request, ::grpc::CompletionQueue* cq) {
   return ::grpc::ClientAsyncResponseReader< ::hw2::Reply>::Create(channel_.get(), cq, rpcmethod_RegisterSlave_, context, request, true);
 }
 
-::grpc::ClientAsyncResponseReader< ::hw2::Reply>* MessengerServer::Stub::PrepareAsyncRegisterSlaveRaw(::grpc::ClientContext* context, const ::hw2::Request& request, ::grpc::CompletionQueue* cq) {
+::grpc::ClientAsyncResponseReader< ::hw2::Reply>* MessengerServer::Stub::PrepareAsyncRegisterSlaveRaw(::grpc::ClientContext* context, const ::hw2::JoinRequest& request, ::grpc::CompletionQueue* cq) {
   return ::grpc::ClientAsyncResponseReader< ::hw2::Reply>::Create(channel_.get(), cq, rpcmethod_RegisterSlave_, context, request, false);
 }
 
@@ -167,7 +167,7 @@ MessengerServer::Service::Service() {
   AddMethod(new ::grpc::RpcServiceMethod(
       MessengerServer_method_names[5],
       ::grpc::RpcMethod::NORMAL_RPC,
-      new ::grpc::RpcMethodHandler< MessengerServer::Service, ::hw2::Request, ::hw2::Reply>(
+      new ::grpc::RpcMethodHandler< MessengerServer::Service, ::hw2::JoinRequest, ::hw2::Reply>(
           std::mem_fn(&MessengerServer::Service::RegisterSlave), this)));
   AddMethod(new ::grpc::RpcServiceMethod(
       MessengerServer_method_names[6],
@@ -218,7 +218,7 @@ MessengerServer::Service::~Service() {
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }
 
-::grpc::Status MessengerServer::Service::RegisterSlave(::grpc::ServerContext* context, const ::hw2::Request* request, ::hw2::Reply* response) {
+::grpc::Status MessengerServer::Service::RegisterSlave(::grpc::ServerContext* context, const ::hw2::JoinRequest* request, ::hw2::Reply* response) {
   (void) context;
   (void) request;
   (void) response;
@@ -267,16 +267,16 @@ Master::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel)
   return ::grpc::ClientAsyncResponseReader< ::hw2::Reply>::Create(channel_.get(), cq, rpcmethod_RequestServer_, context, request, false);
 }
 
-::grpc::Status Master::Stub::RegisterSlave(::grpc::ClientContext* context, const ::hw2::JoinRequest& request, ::hw2::Reply* response) {
+::grpc::Status Master::Stub::RegisterSlave(::grpc::ClientContext* context, const ::hw2::JoinRequest& request, ::hw2::JoinReply* response) {
   return ::grpc::BlockingUnaryCall(channel_.get(), rpcmethod_RegisterSlave_, context, request, response);
 }
 
-::grpc::ClientAsyncResponseReader< ::hw2::Reply>* Master::Stub::AsyncRegisterSlaveRaw(::grpc::ClientContext* context, const ::hw2::JoinRequest& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::ClientAsyncResponseReader< ::hw2::Reply>::Create(channel_.get(), cq, rpcmethod_RegisterSlave_, context, request, true);
+::grpc::ClientAsyncResponseReader< ::hw2::JoinReply>* Master::Stub::AsyncRegisterSlaveRaw(::grpc::ClientContext* context, const ::hw2::JoinRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::ClientAsyncResponseReader< ::hw2::JoinReply>::Create(channel_.get(), cq, rpcmethod_RegisterSlave_, context, request, true);
 }
 
-::grpc::ClientAsyncResponseReader< ::hw2::Reply>* Master::Stub::PrepareAsyncRegisterSlaveRaw(::grpc::ClientContext* context, const ::hw2::JoinRequest& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::ClientAsyncResponseReader< ::hw2::Reply>::Create(channel_.get(), cq, rpcmethod_RegisterSlave_, context, request, false);
+::grpc::ClientAsyncResponseReader< ::hw2::JoinReply>* Master::Stub::PrepareAsyncRegisterSlaveRaw(::grpc::ClientContext* context, const ::hw2::JoinRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::ClientAsyncResponseReader< ::hw2::JoinReply>::Create(channel_.get(), cq, rpcmethod_RegisterSlave_, context, request, false);
 }
 
 Master::Service::Service() {
@@ -288,7 +288,7 @@ Master::Service::Service() {
   AddMethod(new ::grpc::RpcServiceMethod(
       Master_method_names[1],
       ::grpc::RpcMethod::NORMAL_RPC,
-      new ::grpc::RpcMethodHandler< Master::Service, ::hw2::JoinRequest, ::hw2::Reply>(
+      new ::grpc::RpcMethodHandler< Master::Service, ::hw2::JoinRequest, ::hw2::JoinReply>(
           std::mem_fn(&Master::Service::RegisterSlave), this)));
 }
 
@@ -302,7 +302,7 @@ Master::Service::~Service() {
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }
 
-::grpc::Status Master::Service::RegisterSlave(::grpc::ServerContext* context, const ::hw2::JoinRequest* request, ::hw2::Reply* response) {
+::grpc::Status Master::Service::RegisterSlave(::grpc::ServerContext* context, const ::hw2::JoinRequest* request, ::hw2::JoinReply* response) {
   (void) context;
   (void) request;
   (void) response;

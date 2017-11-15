@@ -42,35 +42,11 @@ vector<Client> client_db;
 MasterMgmt* masterMgmt = nullptr;
 NodeMgmt* nodeMgmt = nullptr;
 
-class MasterServer final : public Master::Service {
-  Status RequestServer(ServerContext* context, const Request* request, Reply* reply) {
-    // TODO rewrite the logic using object here
-    string server = masterMgmt->rrServerAssign(request->username());
-    reply->set_msg(server);
-    return Status::OK;
-  }
-
-  Status RegisterSlave(ServerContext* context, const JoinRequest* request, Reply* reply) {
-    masterMgmt->registerMsgServer(request->hostname(), request->replica());
-    vector<string> serverList = masterMgmt->getAllSlaves();
-#ifdef DEBUG
-    cout << "the list of servers including replicas now on master: " << endl;
-    print_strvec(serverList);
-#endif // DEBUG
-
-    for (auto itr = serverList.begin(); itr != (serverList.end() - 1); itr++) {
-      reply->add_arguments(*itr);
-    }
-
-    return Status::OK;
-  }
-};
-
 //Helper function used to find a Client object given its username
-int find_user(std::string username){
+int find_user(std::string username) {
   int index = 0;
-  for(Client c : client_db){
-    if(c.username == username)
+  for (Client c : client_db) {
+    if (c.username == username)
       return index;
     index++;
   }
@@ -94,298 +70,334 @@ string print_relations() {
   return relationList;
 }
 
-// Logic and data behind the server's behavior.
-class MessengerServiceImpl final : public MessengerServer::Service {
-  // register another server
-  Status RegisterSlave(ServerContext* context, const Request* request, Reply* reply) override{
-    nodeMgmt->registerSlave(request->arguments(0));
-    // replies the machine's hostname
-    reply->set_msg(nodeMgmt->getHostName());
+class MasterServer final : public Master::Service {
+  Status RequestServer(ServerContext* context, const Request* request, Reply* reply) {
+    // TODO rewrite the logic using object here
+    string server = masterMgmt->rrServerAssign(request->username());
+    reply->set_msg(server);
     return Status::OK;
   }
 
-  Status Heartbeat(ServerContext* context, const Foo* request, Foo* reply) {
+  Status RegisterSlave(ServerContext* context, const JoinRequest* request, JoinReply* reply) {
+    string addr = request->hostname();
+#ifdef DEBUG
+    cout << "registering " << addr << endl;
+#endif // DEBUG
+
+    vector<string> serverList = masterMgmt->getAllSlaves();
+    vector<string> workerList = masterMgmt->getWorkerList();
+    masterMgmt->registerMsgServer(addr, request->replica());
+#ifdef DEBUG
+    cout << "the list of servers including replicas now on master: " << endl;
+    print_strvec(serverList);
+    cout << "the list of workers now on master: " << endl;
+    print_strvec(workerList);
+#endif // DEBUG
+
+    // return all the current slaves and workers back to the server
+    for (auto itr = serverList.begin(); itr != serverList.end(); itr++) {
+        reply->add_slaves(*itr);
+    }
+    for (auto itr = workerList.begin(); itr != workerList.end(); itr++) {
+        reply->add_workers(*itr);
+    }
+
     return Status::OK;
   }
-
-  Status Sync(ServerContext* context, const SyncMsg* msg, Reply* reply) override {
-    string cmd = msg->cmd();
-    reply->set_msg(nodeMgmt->getHostName());
-    if (cmd.compare(CMD::CHAT) == 0) {
-      Message chatMsg = msg->msg();
-
-      int user_index = find_user(chatMsg.username());
-      Client* c = &client_db[user_index];
-
-      distributeChats(c, chatMsg);
-    }
-    else if (cmd.compare(CMD::DISCONN) == 0) {
-      Client* c = &client_db[find_user(msg->args(0))];
-      c->connected = false;
-    }
-    else if (cmd.compare(CMD::JOIN) == 0) {
-      Client *user1 = &client_db[find_user(msg->args(0))];
-      Client *user2 = &client_db[find_user(msg->args(1))];
-      user1->client_following.push_back(user2);
-      user2->client_followers.push_back(user1);
-#ifdef DEBUG
-      cout << "After syncing join request: " << endl
-        << print_relations();
-#endif // DEBUG
-
-    }
-    else if (cmd.compare(CMD::LEAVE) == 0) {
-      string username1 = msg->args(0), username2 = msg->args(1);
-      Client *user1 = &client_db[find_user(username1)];
-      Client *user2 = &client_db[find_user(username2)];
-      user1->client_following.erase(find(user1->client_following.begin(), user1->client_following.end(), user2));
-      user2->client_followers.erase(find(user2->client_followers.begin(), user2->client_followers.end(), user1));
-#ifdef DEBUG
-      cout << "After syncing leave request: " << endl
-        << print_relations();
-#endif // DEBUG
-    }
-    else if (cmd.compare(CMD::LOGIN) == 0) {
-      Client c;
-      c.username = msg->args(0);
-      //c.host = msg->src();
-      client_db.push_back(c);
-#ifdef DEBUG
-      cout << "sync login from " << msg->src() << " succeeded" << endl;
-#endif // DEBUG
-    }
-    else {
-#ifdef DEBUG
-      cout << "error in matching sync cmds" << endl;
-#endif // DEBUG
-      return Status::CANCELLED;
-    }
-    return Status::OK;
-  }
-
-  //Sends the list of total rooms and joined rooms to the client
-  Status List(ServerContext* context, const Request* request, ListReply* list_reply) override {
-    Client user = client_db[find_user(request->username())];
-    int index = 0;
-    for(Client c : client_db){
-      list_reply->add_all_rooms(c.username);
-    }
-    std::vector<Client*>::const_iterator it;
-    for(it = user.client_following.begin(); it!=user.client_following.end(); it++){
-      list_reply->add_joined_rooms((*it)->username);
-    }
-    return Status::OK;
-  }
-
-  //Sets user1 as following user2
-  Status Join(ServerContext* context, const Request* request, Reply* reply) override {
-    std::string username1 = request->username();
-    std::string username2 = request->arguments(0);
-    int join_index = find_user(username2);
-    //If you try to join a non-existent client or yourself, send failure message
-    if(join_index < 0 || username1 == username2)
-      reply->set_msg("Join Failed -- Invalid Username");
-    else{
-      Client *user1 = &client_db[find_user(username1)];
-      Client *user2 = &client_db[join_index];
-      //If user1 is following user2, send failure message
-      if(std::find(user1->client_following.begin(), user1->client_following.end(), user2) != user1->client_following.end()){
-	reply->set_msg("Join Failed -- Already Following User");
-        return Status::OK;
-      }
-
-      SyncMsg joinSyncMsg;
-      joinSyncMsg.set_src(nodeMgmt->getHostName());
-      joinSyncMsg.set_cmd(CMD::JOIN);
-      joinSyncMsg.add_args(username1);
-      joinSyncMsg.add_args(username2);
-
-      nodeMgmt->sync(joinSyncMsg);
-
-      user1->client_following.push_back(user2);
-      user2->client_followers.push_back(user1);
-#ifdef DEBUG
-      cout << print_relations();
-      // lalala
-#endif // DEBUG
-
-      reply->set_msg("Join Successful");
-    }
-    return Status::OK; 
-  }
-
-  //Sets user1 as no longer following user2
-  Status Leave(ServerContext* context, const Request* request, Reply* reply) override {
-    std::string username1 = request->username();
-    std::string username2 = request->arguments(0);
-    int leave_index = find_user(username2);
-    //If you try to leave a non-existent client or yourself, send failure message
-    if(leave_index < 0 || username1 == username2)
-      reply->set_msg("Leave Failed -- Invalid Username");
-    else{
-      Client *user1 = &client_db[find_user(username1)];
-      Client *user2 = &client_db[leave_index];
-      //If user1 isn't following user2, send failure message
-      if(std::find(user1->client_following.begin(), user1->client_following.end(), user2) == user1->client_following.end()){
-	reply->set_msg("Leave Failed -- Not Following User");
-        return Status::OK;
-      }
-      // find the user2 in user1 following and remove
-      user1->client_following.erase(find(user1->client_following.begin(), user1->client_following.end(), user2)); 
-      // find the user1 in user2 followers and remove
-      user2->client_followers.erase(find(user2->client_followers.begin(), user2->client_followers.end(), user1));
-      
-      SyncMsg leaveSync;
-      leaveSync.set_src(nodeMgmt->getHostName());
-      leaveSync.set_cmd(CMD::LEAVE);
-      leaveSync.add_args(username1);
-      leaveSync.add_args(username2);
-      nodeMgmt->sync(leaveSync);
-      
-      reply->set_msg("Leave Successful");
-    }
-    return Status::OK;
-  }
-
-  //Called when the client startd and checks whether their username is taken or not
-  Status Login(ServerContext* context, const Request* request, Reply* reply) override {
-    Client c;
-    std::string username = request->username();
-    int user_index = find_user(username);
-    if(user_index < 0){
-      // set up username and hostname
-      c.username = username;
-      //c.host = nodeMgmt->getHostName();o
-      client_db.push_back(c);
-      // sync login with other servers
-      SyncMsg msg;
-      msg.set_src(nodeMgmt->getHostName());
-      msg.set_cmd(CMD::LOGIN);
-      msg.add_args(username);
-      nodeMgmt->sync(msg);
-
-      reply->set_msg("Login Successful!");
-#ifdef DEBUG
-      cout << username << " Login Successful!" << endl;
-#endif
-    }
-    else{ 
-      Client *user = &client_db[user_index];
-      if(user->connected)
-        reply->set_msg("Invalid Username");
-      else{
-        std::string msg = "Welcome Back " + user->username;
-	reply->set_msg(msg);
-        user->connected = true;
-      }
-    }
-    return Status::OK;
-  }
-
-  Status Chat(ServerContext* context,
-    ServerReaderWriter<Message, Message>* stream) override {
-    Message message;
-    Client *c;
-    //Read messages until the client disconnects
-    while (stream->Read(&message)) {
-#ifdef DEBUG
-      cout << "=============receive message: " << message.msg() << endl;
-#endif // DEBUG
-
-      // get username that sent the chat
-      std::string username = message.username();
-      // find the client index
-      int user_index = find_user(username);
-      // get the client pointer
-      c = &client_db[user_index];
-      
-      //"Set Stream" is the default message from the client to initialize the stream
-      if (message.msg() != "Set Stream"){
-        distributeChats(c, message);
-#ifdef DEBUG
-        cout << "after distributing chats on the original server" << endl;
-#endif // DEBUG
-
-        // after the function, all files should be written but only local
-        // followers will already receive chat update
-        // now send updates to other servers
-        // construct sync msg
-        SyncMsg chatSync;
-        chatSync.set_src(nodeMgmt->getHostName());
-        chatSync.set_cmd(CMD::CHAT);
-        chatSync.set_allocated_msg(&message);
-        // sync the chats on other servers
-        nodeMgmt->sync(chatSync);
-        chatSync.release_msg();
-      }
-      //If message = "Set Stream", print the first 20 chats from the people you follow
-      else {
-#ifdef DEBUG
-        cout << "============Setup streams" << endl;
-#endif // DEBUG
-        // now the client is on this server
-        c->onServer = true;
-        if (c->stream == 0)
-          c->stream = stream;
-        std::string line;
-        std::vector<std::string> newest_twenty;
-        std::ifstream in(username + "following.txt");
-        int count = 0;
-        //Read the last up-to-20 lines (newest 20 messages) from userfollowing.txt
-        while (getline(in, line)) {
-          if (c->following_file_size > 20) {
-            if (count < c->following_file_size - 20) {
-              count++;
-              continue;
-            }
-          }
-          newest_twenty.push_back(line);
-        }
-        Message new_msg;
-        //Send the newest messages to the client to be displayed
-        for (int i = 0; i<newest_twenty.size(); i++) {
-          new_msg.set_msg(newest_twenty[i]);
-          stream->Write(new_msg);
-        }
-        continue;
-      }
-    }
-    //If the client disconnected from Chat Mode, set connected to false
-    SyncMsg msg;
-    msg.set_src(nodeMgmt->getHostName());
-    msg.set_cmd(CMD::DISCONN);
-    msg.add_args(c->username);
-    nodeMgmt->sync(msg);
-
-    c->connected = false;
-    return Status::OK;
-  }
-
 };
 
-void RunChatServer(string hostname, string port_no, string mServerInfo, bool isReplica) {
+Status 
+MessengerServiceImpl::RegisterSlave
+(ServerContext* context, const JoinRequest* request, Reply* reply) {
+  nodeMgmt->registerSlave(request->hostname());
 #ifdef DEBUG
-  cout << "run chat server on " << (hostname + ":" + port_no) << endl;
+  cout << "All slaves (including replicas) currently connected: " << endl;
+  print_strvec(nodeMgmt->getAllSlaves());
 #endif // DEBUG
 
-  std::string server_address = "0.0.0.0:"+port_no;
-  MessengerServiceImpl service;
+  // replies the machine's hostname
+  reply->set_msg(nodeMgmt->getHostName());
+  return Status::OK;
+}
 
-  ServerBuilder builder;
-  // Listen on the given address without any authentication mechanism.
-  builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
-  // Register "service" as the instance through which we'll communicate with
-  // clients. In this case it corresponds to an *synchronous* service.
-  builder.RegisterService(&service);
-  // Finally assemble the server.
-  std::unique_ptr<Server> server(builder.BuildAndStart());
-  std::cout << "Chat Server listening on " << server_address << std::endl;
-  
+Status
+MessengerServiceImpl::Heartbeat(ServerContext* context, const Foo* request, Foo* reply)  {
+  return Status::OK;
+}
 
+Status
+MessengerServiceImpl::Sync(ServerContext* context, const SyncMsg* msg, Reply* reply)  {
+#ifdef DEBUG
+  cout << "In function MSG::Sync" << endl;
+#endif // DEBUG
+
+  string cmd = msg->cmd();
+  reply->set_msg(nodeMgmt->getHostName());
+  if (cmd.compare(CMD::CHAT) == 0) {
+    Message chatMsg = msg->msg();
+
+    int user_index = find_user(chatMsg.username());
+    Client* c = &client_db[user_index];
+
+    distributeChats(c, chatMsg, nodeMgmt->isReplica());
+  }
+  else if (cmd.compare(CMD::DISCONN) == 0) {
+    Client* c = &client_db[find_user(msg->args(0))];
+    c->connected = false;
+  }
+  else if (cmd.compare(CMD::JOIN) == 0) {
+#ifdef DEBUG
+    cout << "received JOIN request from " << msg->src() << endl;
+#endif // DEBUG
+
+    Client *user1 = &client_db[find_user(msg->args(0))];
+    Client *user2 = &client_db[find_user(msg->args(1))];
+    user1->client_following.push_back(user2);
+    user2->client_followers.push_back(user1);
+#ifdef DEBUG
+    cout << "After syncing join request: " << endl
+      << print_relations();
+#endif // DEBUG
+
+  }
+  else if (cmd.compare(CMD::LEAVE) == 0) {
+    string username1 = msg->args(0), username2 = msg->args(1);
+    Client *user1 = &client_db[find_user(username1)];
+    Client *user2 = &client_db[find_user(username2)];
+    user1->client_following.erase(find(user1->client_following.begin(), user1->client_following.end(), user2));
+    user2->client_followers.erase(find(user2->client_followers.begin(), user2->client_followers.end(), user1));
+#ifdef DEBUG
+    cout << "After syncing leave request: " << endl
+      << print_relations();
+#endif // DEBUG
+  }
+  else if (cmd.compare(CMD::LOGIN) == 0) {
+    Client c;
+    c.username = msg->args(0);
+    //c.host = msg->src();
+    client_db.push_back(c);
+#ifdef DEBUG
+    cout << "sync login from " << msg->src() << " succeeded" << endl;
+#endif // DEBUG
+  }
+  else {
+//#ifdef DEBUG
+//    cout << "error in matching sync cmds" << endl;
+//#endif // DEBUG
+    return Status::CANCELLED;
+  }
+  return Status::OK;
+}
+
+Status
+MessengerServiceImpl::List(ServerContext* context, const Request* request, ListReply* list_reply)  {
+  Client user = client_db[find_user(request->username())];
+  int index = 0;
+  for (Client c : client_db) {
+    list_reply->add_all_rooms(c.username);
+  }
+  std::vector<Client*>::const_iterator it;
+  for (it = user.client_following.begin(); it != user.client_following.end(); it++) {
+    list_reply->add_joined_rooms((*it)->username);
+  }
+  return Status::OK;
+}
+
+Status
+MessengerServiceImpl::Join(ServerContext* context, const Request* request, Reply* reply)  {
+#ifdef DEBUG
+  cout << "in function MSG:JOIN" << endl;
+#endif // DEBUG
+
+  std::string username1 = request->username();
+  std::string username2 = request->arguments(0);
+  int join_index = find_user(username2);
+  //If you try to join a non-existent client or yourself, send failure message
+  if (join_index < 0 || username1 == username2)
+    reply->set_msg("Join Failed -- Invalid Username");
+  else {
+    Client *user1 = &client_db[find_user(username1)];
+    Client *user2 = &client_db[join_index];
+    //If user1 is following user2, send failure message
+    if (std::find(user1->client_following.begin(), user1->client_following.end(), user2) != user1->client_following.end()) {
+      reply->set_msg("Join Failed -- Already Following User");
+      return Status::OK;
+    }
+
+    SyncMsg joinSyncMsg;
+    joinSyncMsg.set_src(nodeMgmt->getHostName());
+    joinSyncMsg.set_cmd(CMD::JOIN);
+    joinSyncMsg.add_args(username1);
+    joinSyncMsg.add_args(username2);
+
+    nodeMgmt->sync(joinSyncMsg);
+
+    user1->client_following.push_back(user2);
+    user2->client_followers.push_back(user1);
+#ifdef DEBUG
+    cout << print_relations();
+    // lalala
+#endif // DEBUG
+
+    reply->set_msg("Join Successful");
+  }
+  return Status::OK;
+}
+
+//Sets user1 as no longer following user2
+Status
+MessengerServiceImpl::Leave
+(ServerContext* context, const Request* request, Reply* reply)  {
+  std::string username1 = request->username();
+  std::string username2 = request->arguments(0);
+  int leave_index = find_user(username2);
+  //If you try to leave a non-existent client or yourself, send failure message
+  if (leave_index < 0 || username1 == username2)
+    reply->set_msg("Leave Failed -- Invalid Username");
+  else {
+    Client *user1 = &client_db[find_user(username1)];
+    Client *user2 = &client_db[leave_index];
+    //If user1 isn't following user2, send failure message
+    if (std::find(user1->client_following.begin(), user1->client_following.end(), user2) == user1->client_following.end()) {
+      reply->set_msg("Leave Failed -- Not Following User");
+      return Status::OK;
+    }
+    // find the user2 in user1 following and remove
+    user1->client_following.erase(find(user1->client_following.begin(), user1->client_following.end(), user2));
+    // find the user1 in user2 followers and remove
+    user2->client_followers.erase(find(user2->client_followers.begin(), user2->client_followers.end(), user1));
+
+    SyncMsg leaveSync;
+    leaveSync.set_src(nodeMgmt->getHostName());
+    leaveSync.set_cmd(CMD::LEAVE);
+    leaveSync.add_args(username1);
+    leaveSync.add_args(username2);
+    nodeMgmt->sync(leaveSync);
+
+    reply->set_msg("Leave Successful");
+  }
+  return Status::OK;
+}
+
+//Called when the client startd and checks whether their username is taken or not
+Status
+MessengerServiceImpl::Login(ServerContext* context, const Request* request, Reply* reply)  {
+  Client c;
+  std::string username = request->username();
+  int user_index = find_user(username);
+  if (user_index < 0) {
+    // set up username and hostname
+    c.username = username;
+    //c.host = nodeMgmt->getHostName();o
+    client_db.push_back(c);
+    // sync login with other servers
+    SyncMsg msg;
+    msg.set_src(nodeMgmt->getHostName());
+    msg.set_cmd(CMD::LOGIN);
+    msg.add_args(username);
+    nodeMgmt->sync(msg);
+
+    reply->set_msg("Login Successful!");
+#ifdef DEBUG
+    cout << username << " Login Successful!" << endl;
+#endif
+  }
+  else {
+    Client *user = &client_db[user_index];
+    if (user->connected)
+      reply->set_msg("Invalid Username");
+    else {
+      std::string msg = "Welcome Back " + user->username;
+      reply->set_msg(msg);
+      user->connected = true;
+    }
+  }
+  return Status::OK;
+}
+
+Status 
+MessengerServiceImpl::Chat(ServerContext* context,
+  ServerReaderWriter<Message, Message>* stream)  {
+  Message message;
+  Client *c;
+  //Read messages until the client disconnects
+  while (stream->Read(&message)) {
+#ifdef DEBUG
+    cout << "=============receive message: " << message.msg() << endl;
+#endif // DEBUG
+
+    // get username that sent the chat
+    std::string username = message.username();
+    // find the client index
+    int user_index = find_user(username);
+    // get the client pointer
+    c = &client_db[user_index];
+
+    //"Set Stream" is the default message from the client to initialize the stream
+    if (message.msg() != "Set Stream") {
+      distributeChats(c, message, false);
+#ifdef DEBUG
+      cout << "after distributing chats on the original server" << endl;
+#endif // DEBUG
+
+      // after the function, all files should be written but only local
+      // followers will already receive chat update
+      // now send updates to other servers
+      // construct sync msg
+      SyncMsg chatSync;
+      chatSync.set_src(nodeMgmt->getHostName());
+      chatSync.set_cmd(CMD::CHAT);
+      chatSync.set_allocated_msg(&message);
+      // sync the chats on other servers
+      nodeMgmt->sync(chatSync);
+      chatSync.release_msg();
+    }
+    //If message = "Set Stream", print the first 20 chats from the people you follow
+    else {
+#ifdef DEBUG
+      cout << "============Setup streams" << endl;
+#endif // DEBUG
+      // now the client is on this server
+      c->onServer = true;
+      if (c->stream == 0)
+        c->stream = stream;
+      std::string line;
+      std::vector<std::string> newest_twenty;
+      std::ifstream in(username + "following.txt");
+      int count = 0;
+      //Read the last up-to-20 lines (newest 20 messages) from userfollowing.txt
+      while (getline(in, line)) {
+        if (c->following_file_size > 20) {
+          if (count < c->following_file_size - 20) {
+            count++;
+            continue;
+          }
+        }
+        newest_twenty.push_back(line);
+      }
+      Message new_msg;
+      //Send the newest messages to the client to be displayed
+      for (int i = 0; i<newest_twenty.size(); i++) {
+        new_msg.set_msg(newest_twenty[i]);
+        stream->Write(new_msg);
+      }
+      continue;
+    }
+  }
+  //If the client disconnected from Chat Mode, set connected to false
+  SyncMsg msg;
+  msg.set_src(nodeMgmt->getHostName());
+  msg.set_cmd(CMD::DISCONN);
+  msg.add_args(c->username);
+  nodeMgmt->sync(msg);
+
+  c->connected = false;
+  return Status::OK;
+}
+
+void RunChatServer(string hostname, string port_no, string mServerInfo, bool isReplica) {
   nodeMgmt = new NodeMgmt((hostname + ":" + port_no), mServerInfo, isReplica);
-  // Wait for the server to shutdown. Note that some other thread must be
-  // responsible for shutting down the server for this call to ever return.
-  server->Wait();
+  nodeMgmt->runChatServer();
 }
 
 void RunMasterServer(string hostname, string m_port) {
@@ -429,6 +441,7 @@ int main(int argc, char** argv) {
     r_port = "10011", m_addr = "lenss-comp1.cse.tamu.edu:10009";
   int opt = 0;
   bool isMaster = true;
+  bool isReplica = true;
   while ((opt = getopt(argc, argv, "r:p:m:")) != -1){
     switch(opt) {
       case 'p':
@@ -436,6 +449,7 @@ int main(int argc, char** argv) {
           port = optarg;
           break;
       case 'r':
+        isReplica = false;
         r_port = optarg;
         break;
       case 'm':
@@ -446,18 +460,11 @@ int main(int argc, char** argv) {
 	  std::cerr << "Invalid Command Line Argument\n";
     }
   }
-  bool isReplica = false;
   if (isMaster) {
     RunMasterServer(string(hostname), port);
   }
   else{
-    int pid = fork();
-    if (pid == 0)
-    {
-      // detach the child process
-      setsid();
-      // child process as a replica
-      isReplica = true;
+    if (isReplica) {
       RunChatServer(string(hostname), r_port, m_addr, isReplica);
     }
     else

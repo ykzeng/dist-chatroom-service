@@ -37,7 +37,7 @@ namespace protobuf_fb_2eproto {
 struct TableStruct {
   static const ::google::protobuf::internal::ParseTableField entries[];
   static const ::google::protobuf::internal::AuxillaryParseTableField aux[];
-  static const ::google::protobuf::internal::ParseTable schema[8];
+  static const ::google::protobuf::internal::ParseTable schema[9];
   static const ::google::protobuf::internal::FieldMetadata field_metadata[];
   static const ::google::protobuf::internal::SerializationTable serialization_table[];
   static const ::google::protobuf::uint32 offsets[];
@@ -51,6 +51,8 @@ void InitDefaultsRequestImpl();
 void InitDefaultsRequest();
 void InitDefaultsJoinRequestImpl();
 void InitDefaultsJoinRequest();
+void InitDefaultsJoinReplyImpl();
+void InitDefaultsJoinReply();
 void InitDefaultsMessageImpl();
 void InitDefaultsMessage();
 void InitDefaultsSyncMsgImpl();
@@ -64,6 +66,7 @@ inline void InitDefaults() {
   InitDefaultsListReply();
   InitDefaultsRequest();
   InitDefaultsJoinRequest();
+  InitDefaultsJoinReply();
   InitDefaultsMessage();
   InitDefaultsSyncMsg();
   InitDefaultsNodeReq();
@@ -74,6 +77,9 @@ namespace hw2 {
 class Foo;
 class FooDefaultTypeInternal;
 extern FooDefaultTypeInternal _Foo_default_instance_;
+class JoinReply;
+class JoinReplyDefaultTypeInternal;
+extern JoinReplyDefaultTypeInternal _JoinReply_default_instance_;
 class JoinRequest;
 class JoinRequestDefaultTypeInternal;
 extern JoinRequestDefaultTypeInternal _JoinRequest_default_instance_;
@@ -574,6 +580,144 @@ class JoinRequest : public ::google::protobuf::Message /* @@protoc_insertion_poi
 };
 // -------------------------------------------------------------------
 
+class JoinReply : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:hw2.JoinReply) */ {
+ public:
+  JoinReply();
+  virtual ~JoinReply();
+
+  JoinReply(const JoinReply& from);
+
+  inline JoinReply& operator=(const JoinReply& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  #if LANG_CXX11
+  JoinReply(JoinReply&& from) noexcept
+    : JoinReply() {
+    *this = ::std::move(from);
+  }
+
+  inline JoinReply& operator=(JoinReply&& from) noexcept {
+    if (GetArenaNoVirtual() == from.GetArenaNoVirtual()) {
+      if (this != &from) InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+  #endif
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const JoinReply& default_instance();
+
+  static void InitAsDefaultInstance();  // FOR INTERNAL USE ONLY
+  static inline const JoinReply* internal_default_instance() {
+    return reinterpret_cast<const JoinReply*>(
+               &_JoinReply_default_instance_);
+  }
+  static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
+    4;
+
+  void Swap(JoinReply* other);
+  friend void swap(JoinReply& a, JoinReply& b) {
+    a.Swap(&b);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline JoinReply* New() const PROTOBUF_FINAL { return New(NULL); }
+
+  JoinReply* New(::google::protobuf::Arena* arena) const PROTOBUF_FINAL;
+  void CopyFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void MergeFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void CopyFrom(const JoinReply& from);
+  void MergeFrom(const JoinReply& from);
+  void Clear() PROTOBUF_FINAL;
+  bool IsInitialized() const PROTOBUF_FINAL;
+
+  size_t ByteSizeLong() const PROTOBUF_FINAL;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input) PROTOBUF_FINAL;
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const PROTOBUF_FINAL;
+  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
+      bool deterministic, ::google::protobuf::uint8* target) const PROTOBUF_FINAL;
+  int GetCachedSize() const PROTOBUF_FINAL { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const PROTOBUF_FINAL;
+  void InternalSwap(JoinReply* other);
+  private:
+  inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
+    return NULL;
+  }
+  inline void* MaybeArenaPtr() const {
+    return NULL;
+  }
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const PROTOBUF_FINAL;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // repeated string slaves = 1;
+  int slaves_size() const;
+  void clear_slaves();
+  static const int kSlavesFieldNumber = 1;
+  const ::std::string& slaves(int index) const;
+  ::std::string* mutable_slaves(int index);
+  void set_slaves(int index, const ::std::string& value);
+  #if LANG_CXX11
+  void set_slaves(int index, ::std::string&& value);
+  #endif
+  void set_slaves(int index, const char* value);
+  void set_slaves(int index, const char* value, size_t size);
+  ::std::string* add_slaves();
+  void add_slaves(const ::std::string& value);
+  #if LANG_CXX11
+  void add_slaves(::std::string&& value);
+  #endif
+  void add_slaves(const char* value);
+  void add_slaves(const char* value, size_t size);
+  const ::google::protobuf::RepeatedPtrField< ::std::string>& slaves() const;
+  ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_slaves();
+
+  // repeated string workers = 2;
+  int workers_size() const;
+  void clear_workers();
+  static const int kWorkersFieldNumber = 2;
+  const ::std::string& workers(int index) const;
+  ::std::string* mutable_workers(int index);
+  void set_workers(int index, const ::std::string& value);
+  #if LANG_CXX11
+  void set_workers(int index, ::std::string&& value);
+  #endif
+  void set_workers(int index, const char* value);
+  void set_workers(int index, const char* value, size_t size);
+  ::std::string* add_workers();
+  void add_workers(const ::std::string& value);
+  #if LANG_CXX11
+  void add_workers(::std::string&& value);
+  #endif
+  void add_workers(const char* value);
+  void add_workers(const char* value, size_t size);
+  const ::google::protobuf::RepeatedPtrField< ::std::string>& workers() const;
+  ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_workers();
+
+  // @@protoc_insertion_point(class_scope:hw2.JoinReply)
+ private:
+
+  ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
+  ::google::protobuf::RepeatedPtrField< ::std::string> slaves_;
+  ::google::protobuf::RepeatedPtrField< ::std::string> workers_;
+  mutable int _cached_size_;
+  friend struct ::protobuf_fb_2eproto::TableStruct;
+  friend void ::protobuf_fb_2eproto::InitDefaultsJoinReplyImpl();
+};
+// -------------------------------------------------------------------
+
 class Message : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:hw2.Message) */ {
  public:
   Message();
@@ -609,7 +753,7 @@ class Message : public ::google::protobuf::Message /* @@protoc_insertion_point(c
                &_Message_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    4;
+    5;
 
   void Swap(Message* other);
   friend void swap(Message& a, Message& b) {
@@ -741,7 +885,7 @@ class SyncMsg : public ::google::protobuf::Message /* @@protoc_insertion_point(c
                &_SyncMsg_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    5;
+    6;
 
   void Swap(SyncMsg* other);
   friend void swap(SyncMsg& a, SyncMsg& b) {
@@ -896,7 +1040,7 @@ class NodeReq : public ::google::protobuf::Message /* @@protoc_insertion_point(c
                &_NodeReq_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    6;
+    7;
 
   void Swap(NodeReq* other);
   friend void swap(NodeReq& a, NodeReq& b) {
@@ -1026,7 +1170,7 @@ class Reply : public ::google::protobuf::Message /* @@protoc_insertion_point(cla
                &_Reply_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    7;
+    8;
 
   void Swap(Reply* other);
   friend void swap(Reply& a, Reply& b) {
@@ -1467,6 +1611,148 @@ inline void JoinRequest::set_replica(bool value) {
   
   replica_ = value;
   // @@protoc_insertion_point(field_set:hw2.JoinRequest.replica)
+}
+
+// -------------------------------------------------------------------
+
+// JoinReply
+
+// repeated string slaves = 1;
+inline int JoinReply::slaves_size() const {
+  return slaves_.size();
+}
+inline void JoinReply::clear_slaves() {
+  slaves_.Clear();
+}
+inline const ::std::string& JoinReply::slaves(int index) const {
+  // @@protoc_insertion_point(field_get:hw2.JoinReply.slaves)
+  return slaves_.Get(index);
+}
+inline ::std::string* JoinReply::mutable_slaves(int index) {
+  // @@protoc_insertion_point(field_mutable:hw2.JoinReply.slaves)
+  return slaves_.Mutable(index);
+}
+inline void JoinReply::set_slaves(int index, const ::std::string& value) {
+  // @@protoc_insertion_point(field_set:hw2.JoinReply.slaves)
+  slaves_.Mutable(index)->assign(value);
+}
+#if LANG_CXX11
+inline void JoinReply::set_slaves(int index, ::std::string&& value) {
+  // @@protoc_insertion_point(field_set:hw2.JoinReply.slaves)
+  slaves_.Mutable(index)->assign(std::move(value));
+}
+#endif
+inline void JoinReply::set_slaves(int index, const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  slaves_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:hw2.JoinReply.slaves)
+}
+inline void JoinReply::set_slaves(int index, const char* value, size_t size) {
+  slaves_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:hw2.JoinReply.slaves)
+}
+inline ::std::string* JoinReply::add_slaves() {
+  // @@protoc_insertion_point(field_add_mutable:hw2.JoinReply.slaves)
+  return slaves_.Add();
+}
+inline void JoinReply::add_slaves(const ::std::string& value) {
+  slaves_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:hw2.JoinReply.slaves)
+}
+#if LANG_CXX11
+inline void JoinReply::add_slaves(::std::string&& value) {
+  slaves_.Add(std::move(value));
+  // @@protoc_insertion_point(field_add:hw2.JoinReply.slaves)
+}
+#endif
+inline void JoinReply::add_slaves(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  slaves_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:hw2.JoinReply.slaves)
+}
+inline void JoinReply::add_slaves(const char* value, size_t size) {
+  slaves_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:hw2.JoinReply.slaves)
+}
+inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
+JoinReply::slaves() const {
+  // @@protoc_insertion_point(field_list:hw2.JoinReply.slaves)
+  return slaves_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::std::string>*
+JoinReply::mutable_slaves() {
+  // @@protoc_insertion_point(field_mutable_list:hw2.JoinReply.slaves)
+  return &slaves_;
+}
+
+// repeated string workers = 2;
+inline int JoinReply::workers_size() const {
+  return workers_.size();
+}
+inline void JoinReply::clear_workers() {
+  workers_.Clear();
+}
+inline const ::std::string& JoinReply::workers(int index) const {
+  // @@protoc_insertion_point(field_get:hw2.JoinReply.workers)
+  return workers_.Get(index);
+}
+inline ::std::string* JoinReply::mutable_workers(int index) {
+  // @@protoc_insertion_point(field_mutable:hw2.JoinReply.workers)
+  return workers_.Mutable(index);
+}
+inline void JoinReply::set_workers(int index, const ::std::string& value) {
+  // @@protoc_insertion_point(field_set:hw2.JoinReply.workers)
+  workers_.Mutable(index)->assign(value);
+}
+#if LANG_CXX11
+inline void JoinReply::set_workers(int index, ::std::string&& value) {
+  // @@protoc_insertion_point(field_set:hw2.JoinReply.workers)
+  workers_.Mutable(index)->assign(std::move(value));
+}
+#endif
+inline void JoinReply::set_workers(int index, const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  workers_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:hw2.JoinReply.workers)
+}
+inline void JoinReply::set_workers(int index, const char* value, size_t size) {
+  workers_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:hw2.JoinReply.workers)
+}
+inline ::std::string* JoinReply::add_workers() {
+  // @@protoc_insertion_point(field_add_mutable:hw2.JoinReply.workers)
+  return workers_.Add();
+}
+inline void JoinReply::add_workers(const ::std::string& value) {
+  workers_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:hw2.JoinReply.workers)
+}
+#if LANG_CXX11
+inline void JoinReply::add_workers(::std::string&& value) {
+  workers_.Add(std::move(value));
+  // @@protoc_insertion_point(field_add:hw2.JoinReply.workers)
+}
+#endif
+inline void JoinReply::add_workers(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  workers_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:hw2.JoinReply.workers)
+}
+inline void JoinReply::add_workers(const char* value, size_t size) {
+  workers_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:hw2.JoinReply.workers)
+}
+inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
+JoinReply::workers() const {
+  // @@protoc_insertion_point(field_list:hw2.JoinReply.workers)
+  return workers_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::std::string>*
+JoinReply::mutable_workers() {
+  // @@protoc_insertion_point(field_mutable_list:hw2.JoinReply.workers)
+  return &workers_;
 }
 
 // -------------------------------------------------------------------
@@ -2098,6 +2384,8 @@ Reply::mutable_arguments() {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

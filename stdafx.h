@@ -43,6 +43,7 @@ using hw2::Master;
 using hw2::SyncMsg;
 using hw2::JoinRequest;
 using hw2::Foo;
+using hw2::JoinReply;
 
 using namespace std;
 
