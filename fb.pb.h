@@ -37,16 +37,20 @@ namespace protobuf_fb_2eproto {
 struct TableStruct {
   static const ::google::protobuf::internal::ParseTableField entries[];
   static const ::google::protobuf::internal::AuxillaryParseTableField aux[];
-  static const ::google::protobuf::internal::ParseTable schema[6];
+  static const ::google::protobuf::internal::ParseTable schema[8];
   static const ::google::protobuf::internal::FieldMetadata field_metadata[];
   static const ::google::protobuf::internal::SerializationTable serialization_table[];
   static const ::google::protobuf::uint32 offsets[];
 };
 void AddDescriptors();
+void InitDefaultsFooImpl();
+void InitDefaultsFoo();
 void InitDefaultsListReplyImpl();
 void InitDefaultsListReply();
 void InitDefaultsRequestImpl();
 void InitDefaultsRequest();
+void InitDefaultsJoinRequestImpl();
+void InitDefaultsJoinRequest();
 void InitDefaultsMessageImpl();
 void InitDefaultsMessage();
 void InitDefaultsSyncMsgImpl();
@@ -56,8 +60,10 @@ void InitDefaultsNodeReq();
 void InitDefaultsReplyImpl();
 void InitDefaultsReply();
 inline void InitDefaults() {
+  InitDefaultsFoo();
   InitDefaultsListReply();
   InitDefaultsRequest();
+  InitDefaultsJoinRequest();
   InitDefaultsMessage();
   InitDefaultsSyncMsg();
   InitDefaultsNodeReq();
@@ -65,6 +71,12 @@ inline void InitDefaults() {
 }
 }  // namespace protobuf_fb_2eproto
 namespace hw2 {
+class Foo;
+class FooDefaultTypeInternal;
+extern FooDefaultTypeInternal _Foo_default_instance_;
+class JoinRequest;
+class JoinRequestDefaultTypeInternal;
+extern JoinRequestDefaultTypeInternal _JoinRequest_default_instance_;
 class ListReply;
 class ListReplyDefaultTypeInternal;
 extern ListReplyDefaultTypeInternal _ListReply_default_instance_;
@@ -87,6 +99,98 @@ extern SyncMsgDefaultTypeInternal _SyncMsg_default_instance_;
 namespace hw2 {
 
 // ===================================================================
+
+class Foo : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:hw2.Foo) */ {
+ public:
+  Foo();
+  virtual ~Foo();
+
+  Foo(const Foo& from);
+
+  inline Foo& operator=(const Foo& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  #if LANG_CXX11
+  Foo(Foo&& from) noexcept
+    : Foo() {
+    *this = ::std::move(from);
+  }
+
+  inline Foo& operator=(Foo&& from) noexcept {
+    if (GetArenaNoVirtual() == from.GetArenaNoVirtual()) {
+      if (this != &from) InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+  #endif
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const Foo& default_instance();
+
+  static void InitAsDefaultInstance();  // FOR INTERNAL USE ONLY
+  static inline const Foo* internal_default_instance() {
+    return reinterpret_cast<const Foo*>(
+               &_Foo_default_instance_);
+  }
+  static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
+    0;
+
+  void Swap(Foo* other);
+  friend void swap(Foo& a, Foo& b) {
+    a.Swap(&b);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline Foo* New() const PROTOBUF_FINAL { return New(NULL); }
+
+  Foo* New(::google::protobuf::Arena* arena) const PROTOBUF_FINAL;
+  void CopyFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void MergeFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void CopyFrom(const Foo& from);
+  void MergeFrom(const Foo& from);
+  void Clear() PROTOBUF_FINAL;
+  bool IsInitialized() const PROTOBUF_FINAL;
+
+  size_t ByteSizeLong() const PROTOBUF_FINAL;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input) PROTOBUF_FINAL;
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const PROTOBUF_FINAL;
+  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
+      bool deterministic, ::google::protobuf::uint8* target) const PROTOBUF_FINAL;
+  int GetCachedSize() const PROTOBUF_FINAL { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const PROTOBUF_FINAL;
+  void InternalSwap(Foo* other);
+  private:
+  inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
+    return NULL;
+  }
+  inline void* MaybeArenaPtr() const {
+    return NULL;
+  }
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const PROTOBUF_FINAL;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // @@protoc_insertion_point(class_scope:hw2.Foo)
+ private:
+
+  ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
+  mutable int _cached_size_;
+  friend struct ::protobuf_fb_2eproto::TableStruct;
+  friend void ::protobuf_fb_2eproto::InitDefaultsFooImpl();
+};
+// -------------------------------------------------------------------
 
 class ListReply : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:hw2.ListReply) */ {
  public:
@@ -123,7 +227,7 @@ class ListReply : public ::google::protobuf::Message /* @@protoc_insertion_point
                &_ListReply_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    0;
+    1;
 
   void Swap(ListReply* other);
   friend void swap(ListReply& a, ListReply& b) {
@@ -261,7 +365,7 @@ class Request : public ::google::protobuf::Message /* @@protoc_insertion_point(c
                &_Request_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    1;
+    2;
 
   void Swap(Request* other);
   friend void swap(Request& a, Request& b) {
@@ -356,6 +460,120 @@ class Request : public ::google::protobuf::Message /* @@protoc_insertion_point(c
 };
 // -------------------------------------------------------------------
 
+class JoinRequest : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:hw2.JoinRequest) */ {
+ public:
+  JoinRequest();
+  virtual ~JoinRequest();
+
+  JoinRequest(const JoinRequest& from);
+
+  inline JoinRequest& operator=(const JoinRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  #if LANG_CXX11
+  JoinRequest(JoinRequest&& from) noexcept
+    : JoinRequest() {
+    *this = ::std::move(from);
+  }
+
+  inline JoinRequest& operator=(JoinRequest&& from) noexcept {
+    if (GetArenaNoVirtual() == from.GetArenaNoVirtual()) {
+      if (this != &from) InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+  #endif
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const JoinRequest& default_instance();
+
+  static void InitAsDefaultInstance();  // FOR INTERNAL USE ONLY
+  static inline const JoinRequest* internal_default_instance() {
+    return reinterpret_cast<const JoinRequest*>(
+               &_JoinRequest_default_instance_);
+  }
+  static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
+    3;
+
+  void Swap(JoinRequest* other);
+  friend void swap(JoinRequest& a, JoinRequest& b) {
+    a.Swap(&b);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline JoinRequest* New() const PROTOBUF_FINAL { return New(NULL); }
+
+  JoinRequest* New(::google::protobuf::Arena* arena) const PROTOBUF_FINAL;
+  void CopyFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void MergeFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void CopyFrom(const JoinRequest& from);
+  void MergeFrom(const JoinRequest& from);
+  void Clear() PROTOBUF_FINAL;
+  bool IsInitialized() const PROTOBUF_FINAL;
+
+  size_t ByteSizeLong() const PROTOBUF_FINAL;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input) PROTOBUF_FINAL;
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const PROTOBUF_FINAL;
+  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
+      bool deterministic, ::google::protobuf::uint8* target) const PROTOBUF_FINAL;
+  int GetCachedSize() const PROTOBUF_FINAL { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const PROTOBUF_FINAL;
+  void InternalSwap(JoinRequest* other);
+  private:
+  inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
+    return NULL;
+  }
+  inline void* MaybeArenaPtr() const {
+    return NULL;
+  }
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const PROTOBUF_FINAL;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // string hostname = 1;
+  void clear_hostname();
+  static const int kHostnameFieldNumber = 1;
+  const ::std::string& hostname() const;
+  void set_hostname(const ::std::string& value);
+  #if LANG_CXX11
+  void set_hostname(::std::string&& value);
+  #endif
+  void set_hostname(const char* value);
+  void set_hostname(const char* value, size_t size);
+  ::std::string* mutable_hostname();
+  ::std::string* release_hostname();
+  void set_allocated_hostname(::std::string* hostname);
+
+  // bool replica = 2;
+  void clear_replica();
+  static const int kReplicaFieldNumber = 2;
+  bool replica() const;
+  void set_replica(bool value);
+
+  // @@protoc_insertion_point(class_scope:hw2.JoinRequest)
+ private:
+
+  ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
+  ::google::protobuf::internal::ArenaStringPtr hostname_;
+  bool replica_;
+  mutable int _cached_size_;
+  friend struct ::protobuf_fb_2eproto::TableStruct;
+  friend void ::protobuf_fb_2eproto::InitDefaultsJoinRequestImpl();
+};
+// -------------------------------------------------------------------
+
 class Message : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:hw2.Message) */ {
  public:
   Message();
@@ -391,7 +609,7 @@ class Message : public ::google::protobuf::Message /* @@protoc_insertion_point(c
                &_Message_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    2;
+    4;
 
   void Swap(Message* other);
   friend void swap(Message& a, Message& b) {
@@ -523,7 +741,7 @@ class SyncMsg : public ::google::protobuf::Message /* @@protoc_insertion_point(c
                &_SyncMsg_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    3;
+    5;
 
   void Swap(SyncMsg* other);
   friend void swap(SyncMsg& a, SyncMsg& b) {
@@ -678,7 +896,7 @@ class NodeReq : public ::google::protobuf::Message /* @@protoc_insertion_point(c
                &_NodeReq_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    4;
+    6;
 
   void Swap(NodeReq* other);
   friend void swap(NodeReq& a, NodeReq& b) {
@@ -808,7 +1026,7 @@ class Reply : public ::google::protobuf::Message /* @@protoc_insertion_point(cla
                &_Reply_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    5;
+    7;
 
   void Swap(Reply* other);
   friend void swap(Reply& a, Reply& b) {
@@ -910,6 +1128,10 @@ class Reply : public ::google::protobuf::Message /* @@protoc_insertion_point(cla
   #pragma GCC diagnostic push
   #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #endif  // __GNUC__
+// Foo
+
+// -------------------------------------------------------------------
+
 // ListReply
 
 // repeated string all_rooms = 1;
@@ -1174,6 +1396,77 @@ inline ::google::protobuf::RepeatedPtrField< ::std::string>*
 Request::mutable_arguments() {
   // @@protoc_insertion_point(field_mutable_list:hw2.Request.arguments)
   return &arguments_;
+}
+
+// -------------------------------------------------------------------
+
+// JoinRequest
+
+// string hostname = 1;
+inline void JoinRequest::clear_hostname() {
+  hostname_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline const ::std::string& JoinRequest::hostname() const {
+  // @@protoc_insertion_point(field_get:hw2.JoinRequest.hostname)
+  return hostname_.GetNoArena();
+}
+inline void JoinRequest::set_hostname(const ::std::string& value) {
+  
+  hostname_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:hw2.JoinRequest.hostname)
+}
+#if LANG_CXX11
+inline void JoinRequest::set_hostname(::std::string&& value) {
+  
+  hostname_.SetNoArena(
+    &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
+  // @@protoc_insertion_point(field_set_rvalue:hw2.JoinRequest.hostname)
+}
+#endif
+inline void JoinRequest::set_hostname(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  
+  hostname_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:hw2.JoinRequest.hostname)
+}
+inline void JoinRequest::set_hostname(const char* value, size_t size) {
+  
+  hostname_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:hw2.JoinRequest.hostname)
+}
+inline ::std::string* JoinRequest::mutable_hostname() {
+  
+  // @@protoc_insertion_point(field_mutable:hw2.JoinRequest.hostname)
+  return hostname_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline ::std::string* JoinRequest::release_hostname() {
+  // @@protoc_insertion_point(field_release:hw2.JoinRequest.hostname)
+  
+  return hostname_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline void JoinRequest::set_allocated_hostname(::std::string* hostname) {
+  if (hostname != NULL) {
+    
+  } else {
+    
+  }
+  hostname_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), hostname);
+  // @@protoc_insertion_point(field_set_allocated:hw2.JoinRequest.hostname)
+}
+
+// bool replica = 2;
+inline void JoinRequest::clear_replica() {
+  replica_ = false;
+}
+inline bool JoinRequest::replica() const {
+  // @@protoc_insertion_point(field_get:hw2.JoinRequest.replica)
+  return replica_;
+}
+inline void JoinRequest::set_replica(bool value) {
+  
+  replica_ = value;
+  // @@protoc_insertion_point(field_set:hw2.JoinRequest.replica)
 }
 
 // -------------------------------------------------------------------
@@ -1805,6 +2098,10 @@ Reply::mutable_arguments() {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

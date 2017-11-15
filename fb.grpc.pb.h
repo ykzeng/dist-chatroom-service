@@ -117,6 +117,13 @@ class MessengerServer final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Reply>> PrepareAsyncSync(::grpc::ClientContext* context, const ::hw2::SyncMsg& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Reply>>(PrepareAsyncSyncRaw(context, request, cq));
     }
+    virtual ::grpc::Status Heartbeat(::grpc::ClientContext* context, const ::hw2::Foo& request, ::hw2::Foo* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Foo>> AsyncHeartbeat(::grpc::ClientContext* context, const ::hw2::Foo& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Foo>>(AsyncHeartbeatRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Foo>> PrepareAsyncHeartbeat(::grpc::ClientContext* context, const ::hw2::Foo& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Foo>>(PrepareAsyncHeartbeatRaw(context, request, cq));
+    }
   private:
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Reply>* AsyncLoginRaw(::grpc::ClientContext* context, const ::hw2::Request& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Reply>* PrepareAsyncLoginRaw(::grpc::ClientContext* context, const ::hw2::Request& request, ::grpc::CompletionQueue* cq) = 0;
@@ -133,6 +140,8 @@ class MessengerServer final {
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Reply>* PrepareAsyncRegisterSlaveRaw(::grpc::ClientContext* context, const ::hw2::Request& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Reply>* AsyncSyncRaw(::grpc::ClientContext* context, const ::hw2::SyncMsg& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Reply>* PrepareAsyncSyncRaw(::grpc::ClientContext* context, const ::hw2::SyncMsg& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Foo>* AsyncHeartbeatRaw(::grpc::ClientContext* context, const ::hw2::Foo& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Foo>* PrepareAsyncHeartbeatRaw(::grpc::ClientContext* context, const ::hw2::Foo& request, ::grpc::CompletionQueue* cq) = 0;
   };
   class Stub final : public StubInterface {
    public:
@@ -188,6 +197,13 @@ class MessengerServer final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::hw2::Reply>> PrepareAsyncSync(::grpc::ClientContext* context, const ::hw2::SyncMsg& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::hw2::Reply>>(PrepareAsyncSyncRaw(context, request, cq));
     }
+    ::grpc::Status Heartbeat(::grpc::ClientContext* context, const ::hw2::Foo& request, ::hw2::Foo* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::hw2::Foo>> AsyncHeartbeat(::grpc::ClientContext* context, const ::hw2::Foo& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::hw2::Foo>>(AsyncHeartbeatRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::hw2::Foo>> PrepareAsyncHeartbeat(::grpc::ClientContext* context, const ::hw2::Foo& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::hw2::Foo>>(PrepareAsyncHeartbeatRaw(context, request, cq));
+    }
 
    private:
     std::shared_ptr< ::grpc::ChannelInterface> channel_;
@@ -206,6 +222,8 @@ class MessengerServer final {
     ::grpc::ClientAsyncResponseReader< ::hw2::Reply>* PrepareAsyncRegisterSlaveRaw(::grpc::ClientContext* context, const ::hw2::Request& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::hw2::Reply>* AsyncSyncRaw(::grpc::ClientContext* context, const ::hw2::SyncMsg& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::hw2::Reply>* PrepareAsyncSyncRaw(::grpc::ClientContext* context, const ::hw2::SyncMsg& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::hw2::Foo>* AsyncHeartbeatRaw(::grpc::ClientContext* context, const ::hw2::Foo& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::hw2::Foo>* PrepareAsyncHeartbeatRaw(::grpc::ClientContext* context, const ::hw2::Foo& request, ::grpc::CompletionQueue* cq) override;
     const ::grpc::RpcMethod rpcmethod_Login_;
     const ::grpc::RpcMethod rpcmethod_List_;
     const ::grpc::RpcMethod rpcmethod_Join_;
@@ -213,6 +231,7 @@ class MessengerServer final {
     const ::grpc::RpcMethod rpcmethod_Chat_;
     const ::grpc::RpcMethod rpcmethod_RegisterSlave_;
     const ::grpc::RpcMethod rpcmethod_Sync_;
+    const ::grpc::RpcMethod rpcmethod_Heartbeat_;
   };
   static std::unique_ptr<Stub> NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
 
@@ -228,6 +247,7 @@ class MessengerServer final {
     virtual ::grpc::Status Chat(::grpc::ServerContext* context, ::grpc::ServerReaderWriter< ::hw2::Message, ::hw2::Message>* stream);
     virtual ::grpc::Status RegisterSlave(::grpc::ServerContext* context, const ::hw2::Request* request, ::hw2::Reply* response);
     virtual ::grpc::Status Sync(::grpc::ServerContext* context, const ::hw2::SyncMsg* request, ::hw2::Reply* response);
+    virtual ::grpc::Status Heartbeat(::grpc::ServerContext* context, const ::hw2::Foo* request, ::hw2::Foo* response);
   };
   template <class BaseClass>
   class WithAsyncMethod_Login : public BaseClass {
@@ -369,7 +389,27 @@ class MessengerServer final {
       ::grpc::Service::RequestAsyncUnary(6, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
-  typedef WithAsyncMethod_Login<WithAsyncMethod_List<WithAsyncMethod_Join<WithAsyncMethod_Leave<WithAsyncMethod_Chat<WithAsyncMethod_RegisterSlave<WithAsyncMethod_Sync<Service > > > > > > > AsyncService;
+  template <class BaseClass>
+  class WithAsyncMethod_Heartbeat : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service *service) {}
+   public:
+    WithAsyncMethod_Heartbeat() {
+      ::grpc::Service::MarkMethodAsync(7);
+    }
+    ~WithAsyncMethod_Heartbeat() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status Heartbeat(::grpc::ServerContext* context, const ::hw2::Foo* request, ::hw2::Foo* response) final override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestHeartbeat(::grpc::ServerContext* context, ::hw2::Foo* request, ::grpc::ServerAsyncResponseWriter< ::hw2::Foo>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(7, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  typedef WithAsyncMethod_Login<WithAsyncMethod_List<WithAsyncMethod_Join<WithAsyncMethod_Leave<WithAsyncMethod_Chat<WithAsyncMethod_RegisterSlave<WithAsyncMethod_Sync<WithAsyncMethod_Heartbeat<Service > > > > > > > > AsyncService;
   template <class BaseClass>
   class WithGenericMethod_Login : public BaseClass {
    private:
@@ -485,6 +525,23 @@ class MessengerServer final {
     }
     // disable synchronous version of this method
     ::grpc::Status Sync(::grpc::ServerContext* context, const ::hw2::SyncMsg* request, ::hw2::Reply* response) final override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+  };
+  template <class BaseClass>
+  class WithGenericMethod_Heartbeat : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service *service) {}
+   public:
+    WithGenericMethod_Heartbeat() {
+      ::grpc::Service::MarkMethodGeneric(7);
+    }
+    ~WithGenericMethod_Heartbeat() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status Heartbeat(::grpc::ServerContext* context, const ::hw2::Foo* request, ::hw2::Foo* response) final override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
@@ -609,9 +666,29 @@ class MessengerServer final {
     // replace default version of method with streamed unary
     virtual ::grpc::Status StreamedSync(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::hw2::SyncMsg,::hw2::Reply>* server_unary_streamer) = 0;
   };
-  typedef WithStreamedUnaryMethod_Login<WithStreamedUnaryMethod_List<WithStreamedUnaryMethod_Join<WithStreamedUnaryMethod_Leave<WithStreamedUnaryMethod_RegisterSlave<WithStreamedUnaryMethod_Sync<Service > > > > > > StreamedUnaryService;
+  template <class BaseClass>
+  class WithStreamedUnaryMethod_Heartbeat : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service *service) {}
+   public:
+    WithStreamedUnaryMethod_Heartbeat() {
+      ::grpc::Service::MarkMethodStreamed(7,
+        new ::grpc::StreamedUnaryHandler< ::hw2::Foo, ::hw2::Foo>(std::bind(&WithStreamedUnaryMethod_Heartbeat<BaseClass>::StreamedHeartbeat, this, std::placeholders::_1, std::placeholders::_2)));
+    }
+    ~WithStreamedUnaryMethod_Heartbeat() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable regular version of this method
+    ::grpc::Status Heartbeat(::grpc::ServerContext* context, const ::hw2::Foo* request, ::hw2::Foo* response) final override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    // replace default version of method with streamed unary
+    virtual ::grpc::Status StreamedHeartbeat(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::hw2::Foo,::hw2::Foo>* server_unary_streamer) = 0;
+  };
+  typedef WithStreamedUnaryMethod_Login<WithStreamedUnaryMethod_List<WithStreamedUnaryMethod_Join<WithStreamedUnaryMethod_Leave<WithStreamedUnaryMethod_RegisterSlave<WithStreamedUnaryMethod_Sync<WithStreamedUnaryMethod_Heartbeat<Service > > > > > > > StreamedUnaryService;
   typedef Service SplitStreamedService;
-  typedef WithStreamedUnaryMethod_Login<WithStreamedUnaryMethod_List<WithStreamedUnaryMethod_Join<WithStreamedUnaryMethod_Leave<WithStreamedUnaryMethod_RegisterSlave<WithStreamedUnaryMethod_Sync<Service > > > > > > StreamedService;
+  typedef WithStreamedUnaryMethod_Login<WithStreamedUnaryMethod_List<WithStreamedUnaryMethod_Join<WithStreamedUnaryMethod_Leave<WithStreamedUnaryMethod_RegisterSlave<WithStreamedUnaryMethod_Sync<WithStreamedUnaryMethod_Heartbeat<Service > > > > > > > StreamedService;
 };
 
 class Master final {
@@ -630,18 +707,18 @@ class Master final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Reply>> PrepareAsyncRequestServer(::grpc::ClientContext* context, const ::hw2::Request& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Reply>>(PrepareAsyncRequestServerRaw(context, request, cq));
     }
-    virtual ::grpc::Status RegisterSlave(::grpc::ClientContext* context, const ::hw2::Request& request, ::hw2::Reply* response) = 0;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Reply>> AsyncRegisterSlave(::grpc::ClientContext* context, const ::hw2::Request& request, ::grpc::CompletionQueue* cq) {
+    virtual ::grpc::Status RegisterSlave(::grpc::ClientContext* context, const ::hw2::JoinRequest& request, ::hw2::Reply* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Reply>> AsyncRegisterSlave(::grpc::ClientContext* context, const ::hw2::JoinRequest& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Reply>>(AsyncRegisterSlaveRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Reply>> PrepareAsyncRegisterSlave(::grpc::ClientContext* context, const ::hw2::Request& request, ::grpc::CompletionQueue* cq) {
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Reply>> PrepareAsyncRegisterSlave(::grpc::ClientContext* context, const ::hw2::JoinRequest& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Reply>>(PrepareAsyncRegisterSlaveRaw(context, request, cq));
     }
   private:
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Reply>* AsyncRequestServerRaw(::grpc::ClientContext* context, const ::hw2::Request& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Reply>* PrepareAsyncRequestServerRaw(::grpc::ClientContext* context, const ::hw2::Request& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Reply>* AsyncRegisterSlaveRaw(::grpc::ClientContext* context, const ::hw2::Request& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Reply>* PrepareAsyncRegisterSlaveRaw(::grpc::ClientContext* context, const ::hw2::Request& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Reply>* AsyncRegisterSlaveRaw(::grpc::ClientContext* context, const ::hw2::JoinRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::hw2::Reply>* PrepareAsyncRegisterSlaveRaw(::grpc::ClientContext* context, const ::hw2::JoinRequest& request, ::grpc::CompletionQueue* cq) = 0;
   };
   class Stub final : public StubInterface {
    public:
@@ -653,11 +730,11 @@ class Master final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::hw2::Reply>> PrepareAsyncRequestServer(::grpc::ClientContext* context, const ::hw2::Request& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::hw2::Reply>>(PrepareAsyncRequestServerRaw(context, request, cq));
     }
-    ::grpc::Status RegisterSlave(::grpc::ClientContext* context, const ::hw2::Request& request, ::hw2::Reply* response) override;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::hw2::Reply>> AsyncRegisterSlave(::grpc::ClientContext* context, const ::hw2::Request& request, ::grpc::CompletionQueue* cq) {
+    ::grpc::Status RegisterSlave(::grpc::ClientContext* context, const ::hw2::JoinRequest& request, ::hw2::Reply* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::hw2::Reply>> AsyncRegisterSlave(::grpc::ClientContext* context, const ::hw2::JoinRequest& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::hw2::Reply>>(AsyncRegisterSlaveRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::hw2::Reply>> PrepareAsyncRegisterSlave(::grpc::ClientContext* context, const ::hw2::Request& request, ::grpc::CompletionQueue* cq) {
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::hw2::Reply>> PrepareAsyncRegisterSlave(::grpc::ClientContext* context, const ::hw2::JoinRequest& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::hw2::Reply>>(PrepareAsyncRegisterSlaveRaw(context, request, cq));
     }
 
@@ -665,8 +742,8 @@ class Master final {
     std::shared_ptr< ::grpc::ChannelInterface> channel_;
     ::grpc::ClientAsyncResponseReader< ::hw2::Reply>* AsyncRequestServerRaw(::grpc::ClientContext* context, const ::hw2::Request& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::hw2::Reply>* PrepareAsyncRequestServerRaw(::grpc::ClientContext* context, const ::hw2::Request& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::hw2::Reply>* AsyncRegisterSlaveRaw(::grpc::ClientContext* context, const ::hw2::Request& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::hw2::Reply>* PrepareAsyncRegisterSlaveRaw(::grpc::ClientContext* context, const ::hw2::Request& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::hw2::Reply>* AsyncRegisterSlaveRaw(::grpc::ClientContext* context, const ::hw2::JoinRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::hw2::Reply>* PrepareAsyncRegisterSlaveRaw(::grpc::ClientContext* context, const ::hw2::JoinRequest& request, ::grpc::CompletionQueue* cq) override;
     const ::grpc::RpcMethod rpcmethod_RequestServer_;
     const ::grpc::RpcMethod rpcmethod_RegisterSlave_;
   };
@@ -678,7 +755,7 @@ class Master final {
     virtual ~Service();
     // rpc heartbeat(Request) return (Reply) {}
     virtual ::grpc::Status RequestServer(::grpc::ServerContext* context, const ::hw2::Request* request, ::hw2::Reply* response);
-    virtual ::grpc::Status RegisterSlave(::grpc::ServerContext* context, const ::hw2::Request* request, ::hw2::Reply* response);
+    virtual ::grpc::Status RegisterSlave(::grpc::ServerContext* context, const ::hw2::JoinRequest* request, ::hw2::Reply* response);
   };
   template <class BaseClass>
   class WithAsyncMethod_RequestServer : public BaseClass {
@@ -712,11 +789,11 @@ class Master final {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status RegisterSlave(::grpc::ServerContext* context, const ::hw2::Request* request, ::hw2::Reply* response) final override {
+    ::grpc::Status RegisterSlave(::grpc::ServerContext* context, const ::hw2::JoinRequest* request, ::hw2::Reply* response) final override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestRegisterSlave(::grpc::ServerContext* context, ::hw2::Request* request, ::grpc::ServerAsyncResponseWriter< ::hw2::Reply>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void RequestRegisterSlave(::grpc::ServerContext* context, ::hw2::JoinRequest* request, ::grpc::ServerAsyncResponseWriter< ::hw2::Reply>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(1, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
@@ -750,7 +827,7 @@ class Master final {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status RegisterSlave(::grpc::ServerContext* context, const ::hw2::Request* request, ::hw2::Reply* response) final override {
+    ::grpc::Status RegisterSlave(::grpc::ServerContext* context, const ::hw2::JoinRequest* request, ::hw2::Reply* response) final override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
@@ -782,18 +859,18 @@ class Master final {
    public:
     WithStreamedUnaryMethod_RegisterSlave() {
       ::grpc::Service::MarkMethodStreamed(1,
-        new ::grpc::StreamedUnaryHandler< ::hw2::Request, ::hw2::Reply>(std::bind(&WithStreamedUnaryMethod_RegisterSlave<BaseClass>::StreamedRegisterSlave, this, std::placeholders::_1, std::placeholders::_2)));
+        new ::grpc::StreamedUnaryHandler< ::hw2::JoinRequest, ::hw2::Reply>(std::bind(&WithStreamedUnaryMethod_RegisterSlave<BaseClass>::StreamedRegisterSlave, this, std::placeholders::_1, std::placeholders::_2)));
     }
     ~WithStreamedUnaryMethod_RegisterSlave() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable regular version of this method
-    ::grpc::Status RegisterSlave(::grpc::ServerContext* context, const ::hw2::Request* request, ::hw2::Reply* response) final override {
+    ::grpc::Status RegisterSlave(::grpc::ServerContext* context, const ::hw2::JoinRequest* request, ::hw2::Reply* response) final override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     // replace default version of method with streamed unary
-    virtual ::grpc::Status StreamedRegisterSlave(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::hw2::Request,::hw2::Reply>* server_unary_streamer) = 0;
+    virtual ::grpc::Status StreamedRegisterSlave(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::hw2::JoinRequest,::hw2::Reply>* server_unary_streamer) = 0;
   };
   typedef WithStreamedUnaryMethod_RequestServer<WithStreamedUnaryMethod_RegisterSlave<Service > > StreamedUnaryService;
   typedef Service SplitStreamedService;

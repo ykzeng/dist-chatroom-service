@@ -5,6 +5,13 @@
 
 using namespace std;
 
+void print_strvec(vector<string> toprint) {
+  for (size_t i = 0; i < toprint.size(); i++)
+  {
+    cout << "The " << i << "th element: " << toprint[i] << endl;
+  }
+}
+
 //Client struct that holds a user's username, followers, and users they follow
 struct Client {
   std::string username;
@@ -101,11 +108,11 @@ void distributeChats(Client* c, Message message) {
 
 class NodeMgmt {
 public: 
-  NodeMgmt(string _hostname, string mServerInfo) {
+  NodeMgmt(string _hostname, string mServerInfo, bool isReplica) {
     this->hostname = _hostname;
     this->masterStub = Master::NewStub(grpc::CreateChannel(
       mServerInfo, grpc::InsecureChannelCredentials()));
-    this->joinMaster();
+    this->joinMaster(isReplica);
   }
 
   NodeMgmt(string _hostname) {
@@ -163,16 +170,18 @@ public:
   //  }
   //}
 
-  void joinMaster() {
+  void joinMaster(bool isReplica) {
     ClientContext context;
-    Request request;
+    JoinRequest request;
     Reply reply;
-    request.add_arguments(this->hostname);
+    request.set_hostname(this->getHostName());
+    request.set_replica(isReplica);
 
     Status status = this->masterStub->RegisterSlave(&context, request, &reply);
     if (status.ok()) {
 #ifdef DEBUG
-      cout << this->hostname << " joinMaster succeeded!" << endl;
+      cout << this->hostname << " joinMaster succeeded as a "
+        << (isReplica ? "replica server":"server") << endl;
 #endif // DEBUG
       for (int i = 0; i < reply.arguments_size(); i++) {
 #ifdef DEBUG
@@ -192,19 +201,55 @@ public:
   }
 
   void registerSlave(string msgServerInfo) {
-    this->servers.push_back(msgServerInfo);
+    this->workers.push_back(msgServerInfo);
     this->msgServerStubs.push_back(MessengerServer::NewStub(grpc::CreateChannel(
       msgServerInfo, grpc::InsecureChannelCredentials())));
   }
 
-  vector<string> getServerList() {
-    return this->servers;
+  vector<string> getWorkerList() {
+    return this->workers;
+  }
+
+  vector<string> getAllSlaves() {
+    return this->allSlaves;
+  }
+
+  void heartbeat() {
+    int pos = find(allSlaves.begin(), allSlaves.end(), this->hostname) - allSlaves.begin();
+#ifdef DEBUG
+    cout << "the chat master position in stub vector: " << pos << endl;
+#endif // DEBUG
+    unique_ptr<MessengerServer::Stub>& chatMaster = msgServerStubs[pos];
+    Foo req;
+    while (true)
+    {
+      ClientContext context;
+      Foo reply;
+      // heartbeat every 25s
+      usleep(25 * 1000);
+      Status status = chatMaster->Heartbeat(&context, req, &reply);
+      if (!status.ok()) {
+        // recover the chat master
+        // 1. fork myself
+        // 2. modify isReplica
+        // 3. get registered client list, set their onserver property to be true
+        // 4. modify the port
+      }
+#ifdef DEBUG
+      else {
+        cout << "Heartbeat succeeded!" << endl;
+      }
+#endif // DEBUG
+
+    }
   }
 
 protected:
-  vector<string> servers;
+  vector<string> workers;
+  vector<string> allSlaves;
   vector<unique_ptr<MessengerServer::Stub>> msgServerStubs;
   unique_ptr<Master::Stub> masterStub;
+  unique_ptr<Server> server;
   // this contains "hostname:port"
   string hostname;
 };
@@ -213,11 +258,11 @@ class MasterMgmt : public NodeMgmt{
 public:
   MasterMgmt(string _hostname) : NodeMgmt(_hostname){}
 
-  string getRRTerm() {
-    string server = servers[this->rr_term];
-    this->rr_term = (++this->rr_term) % servers.size();
+  /*string getRRTerm() {
+    string server = workers[this->rr_term];
+    this->rr_term = (++this->rr_term) % workers.size();
     return server;
-  }
+  }*/
 
   string rrServerAssign(string uname) {
     // TODO how to ensure that the server assignment is success?
@@ -225,8 +270,8 @@ public:
     // if conn failed, then remove server from the list temporarily, assign 
     // another server to the client
     int index = this->rr_term;
-    string server = servers[index];
-    this->rr_term = (++this->rr_term) % servers.size();
+    string server = workers[index];
+    this->rr_term = (++this->rr_term) % workers.size();
     csMap.insert(pair<string, int>(uname, index));
     return server;
   }
@@ -243,7 +288,7 @@ public:
     request.add_arguments(msgServerInfo);
     Status status;
 
-    for (vector<unique_ptr<MessengerServer::Stub>>::iterator itr = msgServerStubs.begin();
+    for (auto itr = msgServerStubs.begin();
       itr != msgServerStubs.end(); itr++) {
 
       ClientContext context;
@@ -264,8 +309,22 @@ public:
 
     msgServerStubs.push_back(MessengerServer::NewStub(grpc::CreateChannel(
       msgServerInfo, grpc::InsecureChannelCredentials())));
-    if (!isReplica)
-      servers.push_back(msgServerInfo);
+#ifdef DEBUG
+    cout << "Pushed stub to " << msgServerInfo << " into list!" << endl;
+#endif // DEBUG
+
+    if (!isReplica) {
+#ifdef DEBUG
+      cout << msgServerInfo << " is not a replica" << endl;
+#endif // DEBUG
+      workers.push_back(msgServerInfo);
+    }
+    else {
+#ifdef DEBUG
+      cout << msgServerInfo << " is a replica" << endl;
+#endif // DEBUG
+    }
+    allSlaves.push_back(msgServerInfo);
   }
 
   //void heartbeat() {

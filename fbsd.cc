@@ -41,7 +41,6 @@
 vector<Client> client_db;
 MasterMgmt* masterMgmt = nullptr;
 NodeMgmt* nodeMgmt = nullptr;
-bool isReplica = false;
 
 class MasterServer final : public Master::Service {
   Status RequestServer(ServerContext* context, const Request* request, Reply* reply) {
@@ -51,9 +50,14 @@ class MasterServer final : public Master::Service {
     return Status::OK;
   }
 
-  Status RegisterSlave(ServerContext* context, const Request* request, Reply* reply) {
-    masterMgmt->registerMsgServer(request->arguments(0), isReplica);
-    vector<string> serverList = masterMgmt->getServerList();
+  Status RegisterSlave(ServerContext* context, const JoinRequest* request, Reply* reply) {
+    masterMgmt->registerMsgServer(request->hostname(), request->replica());
+    vector<string> serverList = masterMgmt->getAllSlaves();
+#ifdef DEBUG
+    cout << "the list of servers including replicas now on master: " << endl;
+    print_strvec(serverList);
+#endif // DEBUG
+
     for (auto itr = serverList.begin(); itr != (serverList.end() - 1); itr++) {
       reply->add_arguments(*itr);
     }
@@ -100,9 +104,9 @@ class MessengerServiceImpl final : public MessengerServer::Service {
     return Status::OK;
   }
 
- /* Status Heartbeat(ServerContext* context, const Request* request, Reply* reply) {
+  Status Heartbeat(ServerContext* context, const Foo* request, Foo* reply) {
     return Status::OK;
-  }*/
+  }
 
   Status Sync(ServerContext* context, const SyncMsg* msg, Reply* reply) override {
     string cmd = msg->cmd();
@@ -359,8 +363,10 @@ class MessengerServiceImpl final : public MessengerServer::Service {
 
 };
 
-void RunChatServer(string hostname, string port_no, string mServerInfo) {
-  nodeMgmt = new NodeMgmt((hostname + ":" + port_no), mServerInfo);
+void RunChatServer(string hostname, string port_no, string mServerInfo, bool isReplica) {
+#ifdef DEBUG
+  cout << "run chat server on " << (hostname + ":" + port_no) << endl;
+#endif // DEBUG
 
   std::string server_address = "0.0.0.0:"+port_no;
   MessengerServiceImpl service;
@@ -374,7 +380,9 @@ void RunChatServer(string hostname, string port_no, string mServerInfo) {
   // Finally assemble the server.
   std::unique_ptr<Server> server(builder.BuildAndStart());
   std::cout << "Chat Server listening on " << server_address << std::endl;
+  
 
+  nodeMgmt = new NodeMgmt((hostname + ":" + port_no), mServerInfo, isReplica);
   // Wait for the server to shutdown. Note that some other thread must be
   // responsible for shutting down the server for this call to ever return.
   server->Wait();
@@ -417,7 +425,8 @@ int main(int argc, char** argv) {
     serverFile.close();
   }*/
   
-  std::string port = "10010", m_port = "10009", m_addr = "lenss-comp1.cse.tamu.edu:10009";
+  std::string port = "10010", m_port = "10009", 
+    r_port = "10011", m_addr = "lenss-comp1.cse.tamu.edu:10009";
   int opt = 0;
   bool isMaster = true;
   while ((opt = getopt(argc, argv, "r:p:m:")) != -1){
@@ -426,6 +435,9 @@ int main(int argc, char** argv) {
           // specify the port
           port = optarg;
           break;
+      case 'r':
+        r_port = optarg;
+        break;
       case 'm':
         isMaster = false;
         m_addr = optarg;
@@ -434,12 +446,23 @@ int main(int argc, char** argv) {
 	  std::cerr << "Invalid Command Line Argument\n";
     }
   }
-
+  bool isReplica = false;
   if (isMaster) {
-    RunMasterServer(string(hostname), m_port);
+    RunMasterServer(string(hostname), port);
   }
-  else
-    RunChatServer(string(hostname), port, m_addr);
+  else{
+    int pid = fork();
+    if (pid == 0)
+    {
+      // detach the child process
+      setsid();
+      // child process as a replica
+      isReplica = true;
+      RunChatServer(string(hostname), r_port, m_addr, isReplica);
+    }
+    else
+      RunChatServer(string(hostname), port, m_addr, isReplica);
+  }
 
   return 0;
 }

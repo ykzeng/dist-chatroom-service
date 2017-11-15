@@ -41,6 +41,8 @@ using hw2::Reply;
 using hw2::MessengerServer;
 using hw2::Master;
 using hw2::SyncMsg;
+using hw2::JoinRequest;
+using hw2::Foo;
 
 using namespace std;
 

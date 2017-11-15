@@ -44,13 +44,17 @@ service MessengerServer {
   rpc Chat (stream Message) returns (stream Message) {} 
   rpc RegisterSlave(Request) returns (Reply) {}
   rpc Sync(SyncMsg) returns (Reply) {}
-  rpc Heartbeat(Request) returns (Reply) {}
+  rpc Heartbeat(Foo) returns (Foo) {}
+}
+
+message Foo{
+
 }
 
 service Master{
   //rpc heartbeat(Request) return (Reply) {}
   rpc RequestServer(Request) returns (Reply) {}
-  rpc RegisterSlave(Request) returns (Reply) {}
+  rpc RegisterSlave(JoinRequest) returns (Reply) {}
 }
 
 message ListReply {
@@ -61,6 +65,11 @@ message ListReply {
 message Request {
   string username = 1;
   repeated string arguments = 2;
+}
+
+message JoinRequest{
+  string hostname = 1;
+  bool replica = 2;
 }
 
 message Message {

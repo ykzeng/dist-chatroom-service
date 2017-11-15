@@ -23,6 +23,7 @@ static const char* MessengerServer_method_names[] = {
   "/hw2.MessengerServer/Chat",
   "/hw2.MessengerServer/RegisterSlave",
   "/hw2.MessengerServer/Sync",
+  "/hw2.MessengerServer/Heartbeat",
 };
 
 std::unique_ptr< MessengerServer::Stub> MessengerServer::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
@@ -38,6 +39,7 @@ MessengerServer::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& ch
   , rpcmethod_Chat_(MessengerServer_method_names[4], ::grpc::RpcMethod::BIDI_STREAMING, channel)
   , rpcmethod_RegisterSlave_(MessengerServer_method_names[5], ::grpc::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_Sync_(MessengerServer_method_names[6], ::grpc::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_Heartbeat_(MessengerServer_method_names[7], ::grpc::RpcMethod::NORMAL_RPC, channel)
   {}
 
 ::grpc::Status MessengerServer::Stub::Login(::grpc::ClientContext* context, const ::hw2::Request& request, ::hw2::Reply* response) {
@@ -124,6 +126,18 @@ MessengerServer::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& ch
   return ::grpc::ClientAsyncResponseReader< ::hw2::Reply>::Create(channel_.get(), cq, rpcmethod_Sync_, context, request, false);
 }
 
+::grpc::Status MessengerServer::Stub::Heartbeat(::grpc::ClientContext* context, const ::hw2::Foo& request, ::hw2::Foo* response) {
+  return ::grpc::BlockingUnaryCall(channel_.get(), rpcmethod_Heartbeat_, context, request, response);
+}
+
+::grpc::ClientAsyncResponseReader< ::hw2::Foo>* MessengerServer::Stub::AsyncHeartbeatRaw(::grpc::ClientContext* context, const ::hw2::Foo& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::ClientAsyncResponseReader< ::hw2::Foo>::Create(channel_.get(), cq, rpcmethod_Heartbeat_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::hw2::Foo>* MessengerServer::Stub::PrepareAsyncHeartbeatRaw(::grpc::ClientContext* context, const ::hw2::Foo& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::ClientAsyncResponseReader< ::hw2::Foo>::Create(channel_.get(), cq, rpcmethod_Heartbeat_, context, request, false);
+}
+
 MessengerServer::Service::Service() {
   AddMethod(new ::grpc::RpcServiceMethod(
       MessengerServer_method_names[0],
@@ -160,6 +174,11 @@ MessengerServer::Service::Service() {
       ::grpc::RpcMethod::NORMAL_RPC,
       new ::grpc::RpcMethodHandler< MessengerServer::Service, ::hw2::SyncMsg, ::hw2::Reply>(
           std::mem_fn(&MessengerServer::Service::Sync), this)));
+  AddMethod(new ::grpc::RpcServiceMethod(
+      MessengerServer_method_names[7],
+      ::grpc::RpcMethod::NORMAL_RPC,
+      new ::grpc::RpcMethodHandler< MessengerServer::Service, ::hw2::Foo, ::hw2::Foo>(
+          std::mem_fn(&MessengerServer::Service::Heartbeat), this)));
 }
 
 MessengerServer::Service::~Service() {
@@ -213,6 +232,13 @@ MessengerServer::Service::~Service() {
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }
 
+::grpc::Status MessengerServer::Service::Heartbeat(::grpc::ServerContext* context, const ::hw2::Foo* request, ::hw2::Foo* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
 
 static const char* Master_method_names[] = {
   "/hw2.Master/RequestServer",
@@ -241,15 +267,15 @@ Master::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel)
   return ::grpc::ClientAsyncResponseReader< ::hw2::Reply>::Create(channel_.get(), cq, rpcmethod_RequestServer_, context, request, false);
 }
 
-::grpc::Status Master::Stub::RegisterSlave(::grpc::ClientContext* context, const ::hw2::Request& request, ::hw2::Reply* response) {
+::grpc::Status Master::Stub::RegisterSlave(::grpc::ClientContext* context, const ::hw2::JoinRequest& request, ::hw2::Reply* response) {
   return ::grpc::BlockingUnaryCall(channel_.get(), rpcmethod_RegisterSlave_, context, request, response);
 }
 
-::grpc::ClientAsyncResponseReader< ::hw2::Reply>* Master::Stub::AsyncRegisterSlaveRaw(::grpc::ClientContext* context, const ::hw2::Request& request, ::grpc::CompletionQueue* cq) {
+::grpc::ClientAsyncResponseReader< ::hw2::Reply>* Master::Stub::AsyncRegisterSlaveRaw(::grpc::ClientContext* context, const ::hw2::JoinRequest& request, ::grpc::CompletionQueue* cq) {
   return ::grpc::ClientAsyncResponseReader< ::hw2::Reply>::Create(channel_.get(), cq, rpcmethod_RegisterSlave_, context, request, true);
 }
 
-::grpc::ClientAsyncResponseReader< ::hw2::Reply>* Master::Stub::PrepareAsyncRegisterSlaveRaw(::grpc::ClientContext* context, const ::hw2::Request& request, ::grpc::CompletionQueue* cq) {
+::grpc::ClientAsyncResponseReader< ::hw2::Reply>* Master::Stub::PrepareAsyncRegisterSlaveRaw(::grpc::ClientContext* context, const ::hw2::JoinRequest& request, ::grpc::CompletionQueue* cq) {
   return ::grpc::ClientAsyncResponseReader< ::hw2::Reply>::Create(channel_.get(), cq, rpcmethod_RegisterSlave_, context, request, false);
 }
 
@@ -262,7 +288,7 @@ Master::Service::Service() {
   AddMethod(new ::grpc::RpcServiceMethod(
       Master_method_names[1],
       ::grpc::RpcMethod::NORMAL_RPC,
-      new ::grpc::RpcMethodHandler< Master::Service, ::hw2::Request, ::hw2::Reply>(
+      new ::grpc::RpcMethodHandler< Master::Service, ::hw2::JoinRequest, ::hw2::Reply>(
           std::mem_fn(&Master::Service::RegisterSlave), this)));
 }
 
@@ -276,7 +302,7 @@ Master::Service::~Service() {
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }
 
-::grpc::Status Master::Service::RegisterSlave(::grpc::ServerContext* context, const ::hw2::Request* request, ::hw2::Reply* response) {
+::grpc::Status Master::Service::RegisterSlave(::grpc::ServerContext* context, const ::hw2::JoinRequest* request, ::hw2::Reply* response) {
   (void) context;
   (void) request;
   (void) response;
