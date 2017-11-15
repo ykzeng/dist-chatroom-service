@@ -47,21 +47,21 @@ void InitDefaultsListReplyImpl();
 void InitDefaultsListReply();
 void InitDefaultsRequestImpl();
 void InitDefaultsRequest();
+void InitDefaultsMessageImpl();
+void InitDefaultsMessage();
 void InitDefaultsSyncMsgImpl();
 void InitDefaultsSyncMsg();
 void InitDefaultsNodeReqImpl();
 void InitDefaultsNodeReq();
 void InitDefaultsReplyImpl();
 void InitDefaultsReply();
-void InitDefaultsMessageImpl();
-void InitDefaultsMessage();
 inline void InitDefaults() {
   InitDefaultsListReply();
   InitDefaultsRequest();
+  InitDefaultsMessage();
   InitDefaultsSyncMsg();
   InitDefaultsNodeReq();
   InitDefaultsReply();
-  InitDefaultsMessage();
 }
 }  // namespace protobuf_fb_2eproto
 namespace hw2 {
@@ -356,6 +356,138 @@ class Request : public ::google::protobuf::Message /* @@protoc_insertion_point(c
 };
 // -------------------------------------------------------------------
 
+class Message : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:hw2.Message) */ {
+ public:
+  Message();
+  virtual ~Message();
+
+  Message(const Message& from);
+
+  inline Message& operator=(const Message& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  #if LANG_CXX11
+  Message(Message&& from) noexcept
+    : Message() {
+    *this = ::std::move(from);
+  }
+
+  inline Message& operator=(Message&& from) noexcept {
+    if (GetArenaNoVirtual() == from.GetArenaNoVirtual()) {
+      if (this != &from) InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+  #endif
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const Message& default_instance();
+
+  static void InitAsDefaultInstance();  // FOR INTERNAL USE ONLY
+  static inline const Message* internal_default_instance() {
+    return reinterpret_cast<const Message*>(
+               &_Message_default_instance_);
+  }
+  static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
+    2;
+
+  void Swap(Message* other);
+  friend void swap(Message& a, Message& b) {
+    a.Swap(&b);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline Message* New() const PROTOBUF_FINAL { return New(NULL); }
+
+  Message* New(::google::protobuf::Arena* arena) const PROTOBUF_FINAL;
+  void CopyFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void MergeFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void CopyFrom(const Message& from);
+  void MergeFrom(const Message& from);
+  void Clear() PROTOBUF_FINAL;
+  bool IsInitialized() const PROTOBUF_FINAL;
+
+  size_t ByteSizeLong() const PROTOBUF_FINAL;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input) PROTOBUF_FINAL;
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const PROTOBUF_FINAL;
+  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
+      bool deterministic, ::google::protobuf::uint8* target) const PROTOBUF_FINAL;
+  int GetCachedSize() const PROTOBUF_FINAL { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const PROTOBUF_FINAL;
+  void InternalSwap(Message* other);
+  private:
+  inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
+    return NULL;
+  }
+  inline void* MaybeArenaPtr() const {
+    return NULL;
+  }
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const PROTOBUF_FINAL;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // string username = 1;
+  void clear_username();
+  static const int kUsernameFieldNumber = 1;
+  const ::std::string& username() const;
+  void set_username(const ::std::string& value);
+  #if LANG_CXX11
+  void set_username(::std::string&& value);
+  #endif
+  void set_username(const char* value);
+  void set_username(const char* value, size_t size);
+  ::std::string* mutable_username();
+  ::std::string* release_username();
+  void set_allocated_username(::std::string* username);
+
+  // string msg = 2;
+  void clear_msg();
+  static const int kMsgFieldNumber = 2;
+  const ::std::string& msg() const;
+  void set_msg(const ::std::string& value);
+  #if LANG_CXX11
+  void set_msg(::std::string&& value);
+  #endif
+  void set_msg(const char* value);
+  void set_msg(const char* value, size_t size);
+  ::std::string* mutable_msg();
+  ::std::string* release_msg();
+  void set_allocated_msg(::std::string* msg);
+
+  // .google.protobuf.Timestamp timestamp = 3;
+  bool has_timestamp() const;
+  void clear_timestamp();
+  static const int kTimestampFieldNumber = 3;
+  const ::google::protobuf::Timestamp& timestamp() const;
+  ::google::protobuf::Timestamp* mutable_timestamp();
+  ::google::protobuf::Timestamp* release_timestamp();
+  void set_allocated_timestamp(::google::protobuf::Timestamp* timestamp);
+
+  // @@protoc_insertion_point(class_scope:hw2.Message)
+ private:
+
+  ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
+  ::google::protobuf::internal::ArenaStringPtr username_;
+  ::google::protobuf::internal::ArenaStringPtr msg_;
+  ::google::protobuf::Timestamp* timestamp_;
+  mutable int _cached_size_;
+  friend struct ::protobuf_fb_2eproto::TableStruct;
+  friend void ::protobuf_fb_2eproto::InitDefaultsMessageImpl();
+};
+// -------------------------------------------------------------------
+
 class SyncMsg : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:hw2.SyncMsg) */ {
  public:
   SyncMsg();
@@ -391,7 +523,7 @@ class SyncMsg : public ::google::protobuf::Message /* @@protoc_insertion_point(c
                &_SyncMsg_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    2;
+    3;
 
   void Swap(SyncMsg* other);
   friend void swap(SyncMsg& a, SyncMsg& b) {
@@ -488,6 +620,15 @@ class SyncMsg : public ::google::protobuf::Message /* @@protoc_insertion_point(c
   ::std::string* release_cmd();
   void set_allocated_cmd(::std::string* cmd);
 
+  // .hw2.Message msg = 4;
+  bool has_msg() const;
+  void clear_msg();
+  static const int kMsgFieldNumber = 4;
+  const ::hw2::Message& msg() const;
+  ::hw2::Message* mutable_msg();
+  ::hw2::Message* release_msg();
+  void set_allocated_msg(::hw2::Message* msg);
+
   // @@protoc_insertion_point(class_scope:hw2.SyncMsg)
  private:
 
@@ -495,6 +636,7 @@ class SyncMsg : public ::google::protobuf::Message /* @@protoc_insertion_point(c
   ::google::protobuf::RepeatedPtrField< ::std::string> args_;
   ::google::protobuf::internal::ArenaStringPtr src_;
   ::google::protobuf::internal::ArenaStringPtr cmd_;
+  ::hw2::Message* msg_;
   mutable int _cached_size_;
   friend struct ::protobuf_fb_2eproto::TableStruct;
   friend void ::protobuf_fb_2eproto::InitDefaultsSyncMsgImpl();
@@ -536,7 +678,7 @@ class NodeReq : public ::google::protobuf::Message /* @@protoc_insertion_point(c
                &_NodeReq_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    3;
+    4;
 
   void Swap(NodeReq* other);
   friend void swap(NodeReq& a, NodeReq& b) {
@@ -666,7 +808,7 @@ class Reply : public ::google::protobuf::Message /* @@protoc_insertion_point(cla
                &_Reply_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    4;
+    5;
 
   void Swap(Reply* other);
   friend void swap(Reply& a, Reply& b) {
@@ -758,138 +900,6 @@ class Reply : public ::google::protobuf::Message /* @@protoc_insertion_point(cla
   mutable int _cached_size_;
   friend struct ::protobuf_fb_2eproto::TableStruct;
   friend void ::protobuf_fb_2eproto::InitDefaultsReplyImpl();
-};
-// -------------------------------------------------------------------
-
-class Message : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:hw2.Message) */ {
- public:
-  Message();
-  virtual ~Message();
-
-  Message(const Message& from);
-
-  inline Message& operator=(const Message& from) {
-    CopyFrom(from);
-    return *this;
-  }
-  #if LANG_CXX11
-  Message(Message&& from) noexcept
-    : Message() {
-    *this = ::std::move(from);
-  }
-
-  inline Message& operator=(Message&& from) noexcept {
-    if (GetArenaNoVirtual() == from.GetArenaNoVirtual()) {
-      if (this != &from) InternalSwap(&from);
-    } else {
-      CopyFrom(from);
-    }
-    return *this;
-  }
-  #endif
-  static const ::google::protobuf::Descriptor* descriptor();
-  static const Message& default_instance();
-
-  static void InitAsDefaultInstance();  // FOR INTERNAL USE ONLY
-  static inline const Message* internal_default_instance() {
-    return reinterpret_cast<const Message*>(
-               &_Message_default_instance_);
-  }
-  static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    5;
-
-  void Swap(Message* other);
-  friend void swap(Message& a, Message& b) {
-    a.Swap(&b);
-  }
-
-  // implements Message ----------------------------------------------
-
-  inline Message* New() const PROTOBUF_FINAL { return New(NULL); }
-
-  Message* New(::google::protobuf::Arena* arena) const PROTOBUF_FINAL;
-  void CopyFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
-  void MergeFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
-  void CopyFrom(const Message& from);
-  void MergeFrom(const Message& from);
-  void Clear() PROTOBUF_FINAL;
-  bool IsInitialized() const PROTOBUF_FINAL;
-
-  size_t ByteSizeLong() const PROTOBUF_FINAL;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input) PROTOBUF_FINAL;
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const PROTOBUF_FINAL;
-  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
-      bool deterministic, ::google::protobuf::uint8* target) const PROTOBUF_FINAL;
-  int GetCachedSize() const PROTOBUF_FINAL { return _cached_size_; }
-  private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const PROTOBUF_FINAL;
-  void InternalSwap(Message* other);
-  private:
-  inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
-    return NULL;
-  }
-  inline void* MaybeArenaPtr() const {
-    return NULL;
-  }
-  public:
-
-  ::google::protobuf::Metadata GetMetadata() const PROTOBUF_FINAL;
-
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-
-  // string username = 1;
-  void clear_username();
-  static const int kUsernameFieldNumber = 1;
-  const ::std::string& username() const;
-  void set_username(const ::std::string& value);
-  #if LANG_CXX11
-  void set_username(::std::string&& value);
-  #endif
-  void set_username(const char* value);
-  void set_username(const char* value, size_t size);
-  ::std::string* mutable_username();
-  ::std::string* release_username();
-  void set_allocated_username(::std::string* username);
-
-  // string msg = 2;
-  void clear_msg();
-  static const int kMsgFieldNumber = 2;
-  const ::std::string& msg() const;
-  void set_msg(const ::std::string& value);
-  #if LANG_CXX11
-  void set_msg(::std::string&& value);
-  #endif
-  void set_msg(const char* value);
-  void set_msg(const char* value, size_t size);
-  ::std::string* mutable_msg();
-  ::std::string* release_msg();
-  void set_allocated_msg(::std::string* msg);
-
-  // .google.protobuf.Timestamp timestamp = 3;
-  bool has_timestamp() const;
-  void clear_timestamp();
-  static const int kTimestampFieldNumber = 3;
-  const ::google::protobuf::Timestamp& timestamp() const;
-  ::google::protobuf::Timestamp* mutable_timestamp();
-  ::google::protobuf::Timestamp* release_timestamp();
-  void set_allocated_timestamp(::google::protobuf::Timestamp* timestamp);
-
-  // @@protoc_insertion_point(class_scope:hw2.Message)
- private:
-
-  ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
-  ::google::protobuf::internal::ArenaStringPtr username_;
-  ::google::protobuf::internal::ArenaStringPtr msg_;
-  ::google::protobuf::Timestamp* timestamp_;
-  mutable int _cached_size_;
-  friend struct ::protobuf_fb_2eproto::TableStruct;
-  friend void ::protobuf_fb_2eproto::InitDefaultsMessageImpl();
 };
 // ===================================================================
 
@@ -1168,6 +1178,161 @@ Request::mutable_arguments() {
 
 // -------------------------------------------------------------------
 
+// Message
+
+// string username = 1;
+inline void Message::clear_username() {
+  username_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline const ::std::string& Message::username() const {
+  // @@protoc_insertion_point(field_get:hw2.Message.username)
+  return username_.GetNoArena();
+}
+inline void Message::set_username(const ::std::string& value) {
+  
+  username_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:hw2.Message.username)
+}
+#if LANG_CXX11
+inline void Message::set_username(::std::string&& value) {
+  
+  username_.SetNoArena(
+    &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
+  // @@protoc_insertion_point(field_set_rvalue:hw2.Message.username)
+}
+#endif
+inline void Message::set_username(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  
+  username_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:hw2.Message.username)
+}
+inline void Message::set_username(const char* value, size_t size) {
+  
+  username_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:hw2.Message.username)
+}
+inline ::std::string* Message::mutable_username() {
+  
+  // @@protoc_insertion_point(field_mutable:hw2.Message.username)
+  return username_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline ::std::string* Message::release_username() {
+  // @@protoc_insertion_point(field_release:hw2.Message.username)
+  
+  return username_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline void Message::set_allocated_username(::std::string* username) {
+  if (username != NULL) {
+    
+  } else {
+    
+  }
+  username_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), username);
+  // @@protoc_insertion_point(field_set_allocated:hw2.Message.username)
+}
+
+// string msg = 2;
+inline void Message::clear_msg() {
+  msg_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline const ::std::string& Message::msg() const {
+  // @@protoc_insertion_point(field_get:hw2.Message.msg)
+  return msg_.GetNoArena();
+}
+inline void Message::set_msg(const ::std::string& value) {
+  
+  msg_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:hw2.Message.msg)
+}
+#if LANG_CXX11
+inline void Message::set_msg(::std::string&& value) {
+  
+  msg_.SetNoArena(
+    &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
+  // @@protoc_insertion_point(field_set_rvalue:hw2.Message.msg)
+}
+#endif
+inline void Message::set_msg(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  
+  msg_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:hw2.Message.msg)
+}
+inline void Message::set_msg(const char* value, size_t size) {
+  
+  msg_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:hw2.Message.msg)
+}
+inline ::std::string* Message::mutable_msg() {
+  
+  // @@protoc_insertion_point(field_mutable:hw2.Message.msg)
+  return msg_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline ::std::string* Message::release_msg() {
+  // @@protoc_insertion_point(field_release:hw2.Message.msg)
+  
+  return msg_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline void Message::set_allocated_msg(::std::string* msg) {
+  if (msg != NULL) {
+    
+  } else {
+    
+  }
+  msg_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), msg);
+  // @@protoc_insertion_point(field_set_allocated:hw2.Message.msg)
+}
+
+// .google.protobuf.Timestamp timestamp = 3;
+inline bool Message::has_timestamp() const {
+  return this != internal_default_instance() && timestamp_ != NULL;
+}
+inline void Message::clear_timestamp() {
+  if (GetArenaNoVirtual() == NULL && timestamp_ != NULL) delete timestamp_;
+  timestamp_ = NULL;
+}
+inline const ::google::protobuf::Timestamp& Message::timestamp() const {
+  const ::google::protobuf::Timestamp* p = timestamp_;
+  // @@protoc_insertion_point(field_get:hw2.Message.timestamp)
+  return p != NULL ? *p : *reinterpret_cast<const ::google::protobuf::Timestamp*>(
+      &::google::protobuf::_Timestamp_default_instance_);
+}
+inline ::google::protobuf::Timestamp* Message::mutable_timestamp() {
+  
+  if (timestamp_ == NULL) {
+    timestamp_ = new ::google::protobuf::Timestamp;
+  }
+  // @@protoc_insertion_point(field_mutable:hw2.Message.timestamp)
+  return timestamp_;
+}
+inline ::google::protobuf::Timestamp* Message::release_timestamp() {
+  // @@protoc_insertion_point(field_release:hw2.Message.timestamp)
+  
+  ::google::protobuf::Timestamp* temp = timestamp_;
+  timestamp_ = NULL;
+  return temp;
+}
+inline void Message::set_allocated_timestamp(::google::protobuf::Timestamp* timestamp) {
+  delete timestamp_;
+  if (timestamp != NULL && timestamp->GetArena() != NULL) {
+    ::google::protobuf::Timestamp* new_timestamp = new ::google::protobuf::Timestamp;
+    new_timestamp->CopyFrom(*timestamp);
+    timestamp = new_timestamp;
+  }
+  timestamp_ = timestamp;
+  if (timestamp) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_set_allocated:hw2.Message.timestamp)
+}
+
+// -------------------------------------------------------------------
+
 // SyncMsg
 
 // string src = 1;
@@ -1343,6 +1508,46 @@ inline ::google::protobuf::RepeatedPtrField< ::std::string>*
 SyncMsg::mutable_args() {
   // @@protoc_insertion_point(field_mutable_list:hw2.SyncMsg.args)
   return &args_;
+}
+
+// .hw2.Message msg = 4;
+inline bool SyncMsg::has_msg() const {
+  return this != internal_default_instance() && msg_ != NULL;
+}
+inline void SyncMsg::clear_msg() {
+  if (GetArenaNoVirtual() == NULL && msg_ != NULL) delete msg_;
+  msg_ = NULL;
+}
+inline const ::hw2::Message& SyncMsg::msg() const {
+  const ::hw2::Message* p = msg_;
+  // @@protoc_insertion_point(field_get:hw2.SyncMsg.msg)
+  return p != NULL ? *p : *reinterpret_cast<const ::hw2::Message*>(
+      &::hw2::_Message_default_instance_);
+}
+inline ::hw2::Message* SyncMsg::mutable_msg() {
+  
+  if (msg_ == NULL) {
+    msg_ = new ::hw2::Message;
+  }
+  // @@protoc_insertion_point(field_mutable:hw2.SyncMsg.msg)
+  return msg_;
+}
+inline ::hw2::Message* SyncMsg::release_msg() {
+  // @@protoc_insertion_point(field_release:hw2.SyncMsg.msg)
+  
+  ::hw2::Message* temp = msg_;
+  msg_ = NULL;
+  return temp;
+}
+inline void SyncMsg::set_allocated_msg(::hw2::Message* msg) {
+  delete msg_;
+  msg_ = msg;
+  if (msg) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_set_allocated:hw2.SyncMsg.msg)
 }
 
 // -------------------------------------------------------------------
@@ -1595,161 +1800,6 @@ inline ::google::protobuf::RepeatedPtrField< ::std::string>*
 Reply::mutable_arguments() {
   // @@protoc_insertion_point(field_mutable_list:hw2.Reply.arguments)
   return &arguments_;
-}
-
-// -------------------------------------------------------------------
-
-// Message
-
-// string username = 1;
-inline void Message::clear_username() {
-  username_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
-inline const ::std::string& Message::username() const {
-  // @@protoc_insertion_point(field_get:hw2.Message.username)
-  return username_.GetNoArena();
-}
-inline void Message::set_username(const ::std::string& value) {
-  
-  username_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
-  // @@protoc_insertion_point(field_set:hw2.Message.username)
-}
-#if LANG_CXX11
-inline void Message::set_username(::std::string&& value) {
-  
-  username_.SetNoArena(
-    &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
-  // @@protoc_insertion_point(field_set_rvalue:hw2.Message.username)
-}
-#endif
-inline void Message::set_username(const char* value) {
-  GOOGLE_DCHECK(value != NULL);
-  
-  username_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
-  // @@protoc_insertion_point(field_set_char:hw2.Message.username)
-}
-inline void Message::set_username(const char* value, size_t size) {
-  
-  username_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
-      ::std::string(reinterpret_cast<const char*>(value), size));
-  // @@protoc_insertion_point(field_set_pointer:hw2.Message.username)
-}
-inline ::std::string* Message::mutable_username() {
-  
-  // @@protoc_insertion_point(field_mutable:hw2.Message.username)
-  return username_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
-inline ::std::string* Message::release_username() {
-  // @@protoc_insertion_point(field_release:hw2.Message.username)
-  
-  return username_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
-inline void Message::set_allocated_username(::std::string* username) {
-  if (username != NULL) {
-    
-  } else {
-    
-  }
-  username_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), username);
-  // @@protoc_insertion_point(field_set_allocated:hw2.Message.username)
-}
-
-// string msg = 2;
-inline void Message::clear_msg() {
-  msg_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
-inline const ::std::string& Message::msg() const {
-  // @@protoc_insertion_point(field_get:hw2.Message.msg)
-  return msg_.GetNoArena();
-}
-inline void Message::set_msg(const ::std::string& value) {
-  
-  msg_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
-  // @@protoc_insertion_point(field_set:hw2.Message.msg)
-}
-#if LANG_CXX11
-inline void Message::set_msg(::std::string&& value) {
-  
-  msg_.SetNoArena(
-    &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
-  // @@protoc_insertion_point(field_set_rvalue:hw2.Message.msg)
-}
-#endif
-inline void Message::set_msg(const char* value) {
-  GOOGLE_DCHECK(value != NULL);
-  
-  msg_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
-  // @@protoc_insertion_point(field_set_char:hw2.Message.msg)
-}
-inline void Message::set_msg(const char* value, size_t size) {
-  
-  msg_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
-      ::std::string(reinterpret_cast<const char*>(value), size));
-  // @@protoc_insertion_point(field_set_pointer:hw2.Message.msg)
-}
-inline ::std::string* Message::mutable_msg() {
-  
-  // @@protoc_insertion_point(field_mutable:hw2.Message.msg)
-  return msg_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
-inline ::std::string* Message::release_msg() {
-  // @@protoc_insertion_point(field_release:hw2.Message.msg)
-  
-  return msg_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
-inline void Message::set_allocated_msg(::std::string* msg) {
-  if (msg != NULL) {
-    
-  } else {
-    
-  }
-  msg_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), msg);
-  // @@protoc_insertion_point(field_set_allocated:hw2.Message.msg)
-}
-
-// .google.protobuf.Timestamp timestamp = 3;
-inline bool Message::has_timestamp() const {
-  return this != internal_default_instance() && timestamp_ != NULL;
-}
-inline void Message::clear_timestamp() {
-  if (GetArenaNoVirtual() == NULL && timestamp_ != NULL) delete timestamp_;
-  timestamp_ = NULL;
-}
-inline const ::google::protobuf::Timestamp& Message::timestamp() const {
-  const ::google::protobuf::Timestamp* p = timestamp_;
-  // @@protoc_insertion_point(field_get:hw2.Message.timestamp)
-  return p != NULL ? *p : *reinterpret_cast<const ::google::protobuf::Timestamp*>(
-      &::google::protobuf::_Timestamp_default_instance_);
-}
-inline ::google::protobuf::Timestamp* Message::mutable_timestamp() {
-  
-  if (timestamp_ == NULL) {
-    timestamp_ = new ::google::protobuf::Timestamp;
-  }
-  // @@protoc_insertion_point(field_mutable:hw2.Message.timestamp)
-  return timestamp_;
-}
-inline ::google::protobuf::Timestamp* Message::release_timestamp() {
-  // @@protoc_insertion_point(field_release:hw2.Message.timestamp)
-  
-  ::google::protobuf::Timestamp* temp = timestamp_;
-  timestamp_ = NULL;
-  return temp;
-}
-inline void Message::set_allocated_timestamp(::google::protobuf::Timestamp* timestamp) {
-  delete timestamp_;
-  if (timestamp != NULL && timestamp->GetArena() != NULL) {
-    ::google::protobuf::Timestamp* new_timestamp = new ::google::protobuf::Timestamp;
-    new_timestamp->CopyFrom(*timestamp);
-    timestamp = new_timestamp;
-  }
-  timestamp_ = timestamp;
-  if (timestamp) {
-    
-  } else {
-    
-  }
-  // @@protoc_insertion_point(field_set_allocated:hw2.Message.timestamp)
 }
 
 #ifdef __GNUC__

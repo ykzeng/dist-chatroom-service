@@ -37,19 +37,6 @@
 #include "stdafx.h"
 #define DEBUG 1
 
-//Client struct that holds a user's username, followers, and users they follow
-struct Client {
-  std::string username;
-  bool connected = true;
-  int following_file_size = 0;
-  std::vector<Client*> client_followers;
-  std::vector<Client*> client_following;
-  ServerReaderWriter<Message, Message>* stream = 0;
-  bool operator==(const Client& c1) const{
-    return (username == c1.username);
-  }
-};
-
 //Vector that stores every client that has been created
 vector<Client> client_db;
 MasterMgmt* masterMgmt = nullptr;
@@ -58,7 +45,7 @@ NodeMgmt* nodeMgmt = nullptr;
 class MasterServer final : public Master::Service {
   Status RequestServer(ServerContext* context, const Request* request, Reply* reply) {
     // TODO rewrite the logic using object here
-    string server = masterMgmt->getRRTerm();
+    string server = masterMgmt->rrServerAssign(request->username());
     reply->set_msg(server);
     return Status::OK;
   }
@@ -116,7 +103,13 @@ class MessengerServiceImpl final : public MessengerServer::Service {
     string cmd = msg->cmd();
     reply->set_msg(nodeMgmt->getHostName());
     if (cmd.compare(CMD::CHAT) == 0) {
+      Message chatMsg = msg->msg();
 
+      int user_index = find_user(chatMsg.username());
+      Client* c = &client_db[user_index];
+
+      distributeChats(c, chatMsg);
+      return Status::OK;
     }
     else if (cmd.compare(CMD::DISCONN) == 0) {
       Client* c = &client_db[find_user(msg->args(0))];
@@ -141,6 +134,7 @@ class MessengerServiceImpl final : public MessengerServer::Service {
     else if (cmd.compare(CMD::LOGIN) == 0) {
       Client c;
       c.username = msg->args(0);
+      //c.host = msg->src();
       client_db.push_back(c);
 #ifdef DEBUG
       cout << "sync login from " << msg->src() << " succeeded" << endl;
@@ -238,15 +232,19 @@ class MessengerServiceImpl final : public MessengerServer::Service {
     std::string username = request->username();
     int user_index = find_user(username);
     if(user_index < 0){
+      // set up username and hostname
       c.username = username;
+      //c.host = nodeMgmt->getHostName();
+      c.onServer = true;
       client_db.push_back(c);
-      reply->set_msg("Login Successful!");
-
+      // sync login with other servers
       SyncMsg msg;
       msg.set_src(nodeMgmt->getHostName());
       msg.set_cmd(CMD::LOGIN);
       msg.add_args(username);
       nodeMgmt->sync(msg);
+
+      reply->set_msg("Login Successful!");
 #ifdef DEBUG
       cout << username << " Login Successful!" << endl;
 #endif
@@ -264,64 +262,71 @@ class MessengerServiceImpl final : public MessengerServer::Service {
     return Status::OK;
   }
 
-  Status Chat(ServerContext* context, 
-		ServerReaderWriter<Message, Message>* stream) override {
+  Status Chat(ServerContext* context,
+    ServerReaderWriter<Message, Message>* stream) override {
     Message message;
     Client *c;
     //Read messages until the client disconnects
-    while(stream->Read(&message)) {
+    while (stream->Read(&message)) {
+#ifdef DEBUG
+      cout << "=============receive message: " << message.msg() << endl;
+#endif // DEBUG
+
+      // get username that sent the chat
       std::string username = message.username();
+      // find the client index
       int user_index = find_user(username);
+      // get the client pointer
       c = &client_db[user_index];
-      //Write the current message to "username.txt"
-      std::string filename = username+".txt";
-      std::ofstream user_file(filename,std::ios::app|std::ios::out|std::ios::in);
-      google::protobuf::Timestamp temptime = message.timestamp();
-      std::string time = google::protobuf::util::TimeUtil::ToString(temptime);
-      std::string fileinput = time+" :: "+message.username()+":"+message.msg()+"\n";
+      
       //"Set Stream" is the default message from the client to initialize the stream
-      if(message.msg() != "Set Stream")
-        user_file << fileinput;
+      if (message.msg() != "Set Stream"){
+        distributeChats(c, message);
+#ifdef DEBUG
+        cout << "after distributing chats on the original server" << endl;
+#endif // DEBUG
+
+        // after the function, all files should be written but only local
+        // followers will already receive chat update
+        // now send updates to other servers
+        // construct sync msg
+        SyncMsg chatSync;
+        chatSync.set_src(nodeMgmt->getHostName());
+        chatSync.set_cmd(CMD::CHAT);
+        chatSync.set_allocated_msg(&message);
+        // sync the chats on other servers
+        nodeMgmt->sync(chatSync);
+        chatSync.release_msg();
+      }
       //If message = "Set Stream", print the first 20 chats from the people you follow
-      else{
-        if(c->stream==0)
-      	  c->stream = stream;
+      else {
+#ifdef DEBUG
+        cout << "============Setup streams" << endl;
+#endif // DEBUG
+
+        if (c->stream == 0)
+          c->stream = stream;
         std::string line;
         std::vector<std::string> newest_twenty;
-        std::ifstream in(username+"following.txt");
+        std::ifstream in(username + "following.txt");
         int count = 0;
         //Read the last up-to-20 lines (newest 20 messages) from userfollowing.txt
-        while(getline(in, line)){
-          if(c->following_file_size > 20){
-	    if(count < c->following_file_size-20){
+        while (getline(in, line)) {
+          if (c->following_file_size > 20) {
+            if (count < c->following_file_size - 20) {
               count++;
-	      continue;
+              continue;
             }
           }
           newest_twenty.push_back(line);
         }
-        Message new_msg; 
- 	//Send the newest messages to the client to be displayed
-	for(int i = 0; i<newest_twenty.size(); i++){
-	  new_msg.set_msg(newest_twenty[i]);
+        Message new_msg;
+        //Send the newest messages to the client to be displayed
+        for (int i = 0; i<newest_twenty.size(); i++) {
+          new_msg.set_msg(newest_twenty[i]);
           stream->Write(new_msg);
-        }    
+        }
         continue;
-      }
-      //Send the message to each follower's stream
-      std::vector<Client*>::const_iterator it;
-      for(it = c->client_followers.begin(); it!=c->client_followers.end(); it++){
-        Client *temp_client = *it;
-      	if(temp_client->stream!=0 && temp_client->connected)
-	  temp_client->stream->Write(message);
-        //For each of the current user's followers, put the message in their following.txt file
-        std::string temp_username = temp_client->username;
-        std::string temp_file = temp_username + "following.txt";
-	std::ofstream following_file(temp_file,std::ios::app|std::ios::out|std::ios::in);
-	following_file << fileinput;
-        temp_client->following_file_size++;
-	std::ofstream user_file(temp_username + ".txt",std::ios::app|std::ios::out|std::ios::in);
-        user_file << fileinput;
       }
     }
     //If the client disconnected from Chat Mode, set connected to false

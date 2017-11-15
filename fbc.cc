@@ -75,15 +75,18 @@ Message MakeMessage(const std::string& username, const std::string& msg) {
 
 class MessengerClient {
  public:
-  MessengerClient(std::shared_ptr<Channel> channel)
+  MessengerClient(const string& uname, 
+    std::shared_ptr<Channel> channel)
       : master_stub(Master::NewStub(channel)) {
-    RequestChatServer();
+    RequestChatServer(uname);
   }
 
-  void RequestChatServer() {
+  void RequestChatServer(const string& uname) {
     Request request;
     Reply reply;
     ClientContext context;
+
+    request.set_username(uname);
 
     master_stub->RequestServer(&context, request, &reply);
 #ifdef DEBUG
@@ -298,7 +301,7 @@ int main(int argc, char** argv) {
   std::string login_info = hostname + ":" + port;
 
   //Create the messenger client with the login info
-  MessengerClient *messenger = new MessengerClient(grpc::CreateChannel(
+  MessengerClient *messenger = new MessengerClient(username, grpc::CreateChannel(
         login_info, grpc::InsecureChannelCredentials())); 
   //Call the login stub function
   std::string response = messenger->Login(username);

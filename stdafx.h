@@ -8,8 +8,10 @@
 #include <vector>
 #include <ctime>
 #include <thread>
+#include <cassert>
 
 #include "utils.h"
+#include <map>
 
 #include "fb.grpc.pb.h"
 #include <google/protobuf/util/time_util.h>

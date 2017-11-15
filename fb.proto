@@ -62,10 +62,20 @@ message Request {
   repeated string arguments = 2;
 }
 
+message Message {
+  //Username who sent the message
+  string username = 1;
+  //Message from the user
+  string msg = 2;
+  //Time the message was sent
+  google.protobuf.Timestamp timestamp = 3;
+}
+
 message SyncMsg{
   string src = 1;
   string cmd = 2;
   repeated string args = 3;
+  Message msg = 4;
 }
 
 message NodeReq{
@@ -76,13 +86,4 @@ message NodeReq{
 message Reply {
   string msg = 1;
   repeated string arguments = 2;
-}
-
-message Message {
-  //Username who sent the message
-  string username = 1;
-  //Message from the user
-  string msg = 2;
-  //Time the message was sent
-  google.protobuf.Timestamp timestamp = 3;
 }

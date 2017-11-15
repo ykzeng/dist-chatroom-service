@@ -5,6 +5,22 @@
 
 using namespace std;
 
+//Client struct that holds a user's username, followers, and users they follow
+struct Client {
+  std::string username;
+  bool connected = true;
+  int following_file_size = 0;
+  std::vector<Client*> client_followers;
+  std::vector<Client*> client_following;
+  ServerReaderWriter<Message, Message>* stream = 0;
+  //string host;
+  // flag that indicates if the client is on this server
+  bool onServer = false;
+  bool operator==(const Client& c1) const {
+    return (username == c1.username);
+  }
+};
+
 class CMD {
 public:
   static const string JOIN;
@@ -26,6 +42,61 @@ bool isSameHost(string hostname1, char* hostname2) {
     return true;
   else
     return false;
+}
+
+string genRecord(Message message) {
+  // get the info for writing to file
+  google::protobuf::Timestamp temptime = message.timestamp();
+  std::string time = google::protobuf::util::TimeUtil::ToString(temptime);
+  std::string fileinput = time + " :: " + message.username() + ":" + message.msg() + "\n";
+  return fileinput;
+}
+
+void distributeChats(Client* c, Message message) {
+  string username = c->username;
+  // get the info for writing to file
+  string fileinput = genRecord(message);
+
+  //Write the current message to "username.txt"
+  std::string filename = username + ".txt";
+  std::ofstream user_file(filename, std::ios::app | std::ios::out | std::ios::in);
+  user_file << fileinput;
+#ifdef DEBUG
+  cout << username + ".txt is now written" << endl;
+#endif // DEBUG
+
+  //persist the message to each follower's file
+  //send msg to each local follower's stream
+  std::vector<Client*>::const_iterator it;
+  for (it = c->client_followers.begin(); it != c->client_followers.end(); it++) {
+    Client *temp_client = *it;
+    // for those local followers, write to stream
+    if (temp_client->onServer) {
+#ifdef DEBUG
+      cout << "=====writing " << message.msg() << " to " << temp_client->username << endl;
+#endif // DEBUG
+
+      assert(temp_client->stream != 0 && temp_client->connected);
+      temp_client->stream->Write(message);
+    }
+    //For each of the current user's followers, put the message in their following.txt file
+    std::string temp_username = temp_client->username;
+    std::string temp_file = temp_username + "following.txt";
+
+    std::ofstream following_file(temp_file, std::ios::app | std::ios::out | std::ios::in);
+    following_file << fileinput;
+#ifdef DEBUG
+    cout << "=======wrote to " << temp_file << endl;
+#endif // DEBUG
+
+    temp_client->following_file_size++;
+
+    std::ofstream user_file(temp_username + ".txt", std::ios::app | std::ios::out | std::ios::in);
+    user_file << fileinput;
+#ifdef DEBUG
+    cout << "=======wrote to " << temp_username << endl;
+#endif // DEBUG
+  }
 }
 
 class NodeMgmt {
@@ -59,6 +130,39 @@ public:
     }
   }
 
+  //string writeUserChats(Message message) {
+  //  string fileinput, username = message.username();
+  //  string filename = username + ".txt";
+  //  ofstream user_file(filename, std::ios::app | std::ios::out | std::ios::in);
+  //  google::protobuf::Timestamp temptime = message.timestamp();
+  //  string time = google::protobuf::util::TimeUtil::ToString(temptime);
+  //  fileinput = time + " :: " + message.username() + ":" + message.msg() + "\n";
+  //  user_file.close();
+  //  return fileinput;
+  //}
+
+  //void distributeChats(vector<Client*> followers, Message msg, string fileinput) {
+  //  for (auto itr = followers.begin(); itr != followers.end(); itr++) {
+  //    Client* tClient = *itr;
+  //    // 1. write to the files anyway
+  //    string tUname = tClient->username;
+  //    string tFileName = tUname + "following.txt";
+  //    ofstream foOut(tFileName, std::ios::app | std::ios::out | std::ios::in);
+  //    foOut << fileinput;
+  //    tClient->following_file_size++;
+  //    foOut.close();
+  //    ofstream userOut(tUname + ".txt", std::ios::app | std::ios::out | std::ios::in);
+  //    userOut << fileinput;
+  //    userOut.close();
+  //    // 2. distribute to client stream if the client is on this server
+  //    if (tClient->onServer) {
+  //      // then the client must be connected, i.e., stream neq 0, connected yes
+  //      assert(tClient->stream != 0 && tClient->connected);
+  //      tClient->stream->Write(msg);
+  //    }
+  //  }
+  //}
+
   void joinMaster() {
     ClientContext context;
     Request request;
@@ -88,24 +192,42 @@ public:
   }
 
   void registerSlave(string msgServerInfo) {
+    this->servers.push_back(msgServerInfo);
     this->msgServerStubs.push_back(MessengerServer::NewStub(grpc::CreateChannel(
       msgServerInfo, grpc::InsecureChannelCredentials())));
   }
 
+  vector<string> getServerList() {
+    return this->servers;
+  }
+
 protected:
+  vector<string> servers;
   vector<unique_ptr<MessengerServer::Stub>> msgServerStubs;
   unique_ptr<Master::Stub> masterStub;
   // this contains "hostname:port"
   string hostname;
 };
 
-class MasterMgmt : NodeMgmt{
+class MasterMgmt : public NodeMgmt{
 public:
   MasterMgmt(string _hostname) : NodeMgmt(_hostname){}
 
   string getRRTerm() {
     string server = servers[this->rr_term];
     this->rr_term = (++this->rr_term) % servers.size();
+    return server;
+  }
+
+  string rrServerAssign(string uname) {
+    // TODO how to ensure that the server assignment is success?
+    // one thing we can probably do is to check connection before assignment
+    // if conn failed, then remove server from the list temporarily, assign 
+    // another server to the client
+    int index = this->rr_term;
+    string server = servers[index];
+    this->rr_term = (++this->rr_term) % servers.size();
+    csMap.insert(pair<string, int>(uname, index));
     return server;
   }
 
@@ -145,11 +267,8 @@ public:
     servers.push_back(msgServerInfo);
   }
 
-  vector<string> getServerList() {
-    return this->servers;
-  }
-
 private: 
   int rr_term = 0;
-  vector<string> servers;
+  // client to server stub index map
+  map<string, int> csMap;
 };
