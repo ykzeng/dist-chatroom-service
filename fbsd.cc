@@ -41,6 +41,7 @@
 vector<Client> client_db;
 MasterMgmt* masterMgmt = nullptr;
 NodeMgmt* nodeMgmt = nullptr;
+bool isReplica = false;
 
 class MasterServer final : public Master::Service {
   Status RequestServer(ServerContext* context, const Request* request, Reply* reply) {
@@ -51,7 +52,7 @@ class MasterServer final : public Master::Service {
   }
 
   Status RegisterSlave(ServerContext* context, const Request* request, Reply* reply) {
-    masterMgmt->registerMsgServer(request->arguments(0));
+    masterMgmt->registerMsgServer(request->arguments(0), isReplica);
     vector<string> serverList = masterMgmt->getServerList();
     for (auto itr = serverList.begin(); itr != (serverList.end() - 1); itr++) {
       reply->add_arguments(*itr);
@@ -99,6 +100,10 @@ class MessengerServiceImpl final : public MessengerServer::Service {
     return Status::OK;
   }
 
+ /* Status Heartbeat(ServerContext* context, const Request* request, Reply* reply) {
+    return Status::OK;
+  }*/
+
   Status Sync(ServerContext* context, const SyncMsg* msg, Reply* reply) override {
     string cmd = msg->cmd();
     reply->set_msg(nodeMgmt->getHostName());
@@ -109,12 +114,10 @@ class MessengerServiceImpl final : public MessengerServer::Service {
       Client* c = &client_db[user_index];
 
       distributeChats(c, chatMsg);
-      return Status::OK;
     }
     else if (cmd.compare(CMD::DISCONN) == 0) {
       Client* c = &client_db[find_user(msg->args(0))];
       c->connected = false;
-      return Status::OK;
     }
     else if (cmd.compare(CMD::JOIN) == 0) {
       Client *user1 = &client_db[find_user(msg->args(0))];
@@ -126,10 +129,17 @@ class MessengerServiceImpl final : public MessengerServer::Service {
         << print_relations();
 #endif // DEBUG
 
-      return Status::OK;
     }
     else if (cmd.compare(CMD::LEAVE) == 0) {
-
+      string username1 = msg->args(0), username2 = msg->args(1);
+      Client *user1 = &client_db[find_user(username1)];
+      Client *user2 = &client_db[find_user(username2)];
+      user1->client_following.erase(find(user1->client_following.begin(), user1->client_following.end(), user2));
+      user2->client_followers.erase(find(user2->client_followers.begin(), user2->client_followers.end(), user1));
+#ifdef DEBUG
+      cout << "After syncing leave request: " << endl
+        << print_relations();
+#endif // DEBUG
     }
     else if (cmd.compare(CMD::LOGIN) == 0) {
       Client c;
@@ -139,8 +149,6 @@ class MessengerServiceImpl final : public MessengerServer::Service {
 #ifdef DEBUG
       cout << "sync login from " << msg->src() << " succeeded" << endl;
 #endif // DEBUG
-
-      return Status::OK;
     }
     else {
 #ifdef DEBUG
@@ -148,6 +156,7 @@ class MessengerServiceImpl final : public MessengerServer::Service {
 #endif // DEBUG
       return Status::CANCELLED;
     }
+    return Status::OK;
   }
 
   //Sends the list of total rooms and joined rooms to the client
@@ -221,6 +230,14 @@ class MessengerServiceImpl final : public MessengerServer::Service {
       user1->client_following.erase(find(user1->client_following.begin(), user1->client_following.end(), user2)); 
       // find the user1 in user2 followers and remove
       user2->client_followers.erase(find(user2->client_followers.begin(), user2->client_followers.end(), user1));
+      
+      SyncMsg leaveSync;
+      leaveSync.set_src(nodeMgmt->getHostName());
+      leaveSync.set_cmd(CMD::LEAVE);
+      leaveSync.add_args(username1);
+      leaveSync.add_args(username2);
+      nodeMgmt->sync(leaveSync);
+      
       reply->set_msg("Leave Successful");
     }
     return Status::OK;
@@ -234,8 +251,7 @@ class MessengerServiceImpl final : public MessengerServer::Service {
     if(user_index < 0){
       // set up username and hostname
       c.username = username;
-      //c.host = nodeMgmt->getHostName();
-      c.onServer = true;
+      //c.host = nodeMgmt->getHostName();o
       client_db.push_back(c);
       // sync login with other servers
       SyncMsg msg;
@@ -303,7 +319,8 @@ class MessengerServiceImpl final : public MessengerServer::Service {
 #ifdef DEBUG
         cout << "============Setup streams" << endl;
 #endif // DEBUG
-
+        // now the client is on this server
+        c->onServer = true;
         if (c->stream == 0)
           c->stream = stream;
         std::string line;
@@ -403,9 +420,10 @@ int main(int argc, char** argv) {
   std::string port = "10010", m_port = "10009", m_addr = "lenss-comp1.cse.tamu.edu:10009";
   int opt = 0;
   bool isMaster = true;
-  while ((opt = getopt(argc, argv, "p:m:")) != -1){
+  while ((opt = getopt(argc, argv, "r:p:m:")) != -1){
     switch(opt) {
       case 'p':
+          // specify the port
           port = optarg;
           break;
       case 'm':

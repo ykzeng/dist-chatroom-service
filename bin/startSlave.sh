@@ -12,4 +12,4 @@ if [ ! -z "$1" ]
 fi
 killall fbsd
 # run slave chat server
-../fbsd -p $cPort -m $mHost &
+../fbsd -p $cPort -m $mHost

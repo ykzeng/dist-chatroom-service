@@ -7,14 +7,14 @@ Compile the code using the provided makefile:
     make
 
 To clear the directory (and remove .txt files):
-   
+
     make clean
 
-To run the server on port 3010 (the default port used for testing):
+To run both master and chat server on lenss-comp1.cse.tamu.edu:
 
-    ./fbsd -p 3010
+    bin/startMaster.sh
 
-To run the client on the localhost, on port 3010, and with username "user1": 
+To run chat server on any other machines:
 
-    ./fbc -h localhost -p 3010 -u user1
+    bin/startSlave.sh
 

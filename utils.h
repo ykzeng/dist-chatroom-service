@@ -231,7 +231,7 @@ public:
     return server;
   }
 
-  void registerMsgServer(string msgServerInfo) {
+  void registerMsgServer(string msgServerInfo, bool isReplica) {
     // TODO 
     // 1. add it into server stubs collection
     // 2. broadcast newly registered server to all already-registered servers
@@ -264,8 +264,26 @@ public:
 
     msgServerStubs.push_back(MessengerServer::NewStub(grpc::CreateChannel(
       msgServerInfo, grpc::InsecureChannelCredentials())));
-    servers.push_back(msgServerInfo);
+    if (!isReplica)
+      servers.push_back(msgServerInfo);
   }
+
+  //void heartbeat() {
+  //  while (true)
+  //  {
+  //    for (auto itr = msgServerStubs.begin(); itr != msgServerStubs.end(); itr++) {
+  //      unique_ptr<MessengerServer::Stub>& stub = *itr;
+  //      Status status = stub->Heartbeat();
+  //      // if not receiving proper reply
+  //      if (!status.ok())
+  //      {
+  //        
+  //      }
+  //    }
+  //    // sleep 20 seconds
+  //    usleep(20*1000);
+  //  }
+  //}
 
 private: 
   int rr_term = 0;

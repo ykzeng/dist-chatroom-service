@@ -44,6 +44,7 @@ service MessengerServer {
   rpc Chat (stream Message) returns (stream Message) {} 
   rpc RegisterSlave(Request) returns (Reply) {}
   rpc Sync(SyncMsg) returns (Reply) {}
+  rpc Heartbeat(Request) returns (Reply) {}
 }
 
 service Master{
